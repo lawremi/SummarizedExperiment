@@ -1,4 +1,5 @@
 import(methods)
+import(S7)
 importFrom(utils, read.delim, .DollarNames)
 importFrom(stats, setNames)
 importFrom(tools, file_path_as_absolute)
@@ -20,7 +21,6 @@ import(DelayedArray)
 
 exportClasses(
     Assays, SimpleAssays, ShallowData, ShallowSimpleListAssays,
-    Assays_OR_NULL,
     SummarizedExperiment,
     RangedSummarizedExperiment
 )

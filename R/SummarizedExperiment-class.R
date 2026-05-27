@@ -4,43 +4,7 @@
 ###
 
 
-setClassUnion("Assays_OR_NULL", c("Assays", "NULL"))
-
-setClass("SummarizedExperiment",
-    contains=c("RectangularData", "Vector"),
-    representation(
-        colData="DataFrame",            # columns and their annotations
-        assays="Assays_OR_NULL",        # Data -- e.g., list of matrices
-        NAMES="character_OR_NULL",
-        elementMetadata="DataFrame"
-    ),
-    prototype(
-        colData=new("DFrame"),
-        elementMetadata=new("DFrame")
-    )
-)
-
-### Combine the new "parallel slots" with those of the parent class. Make
-### sure to put the new parallel slots **first**. See R/Vector-class.R file
-### in the S4Vectors package for what slots should or should not be considered
-### "parallel".
-setMethod("parallel_slot_names", "SummarizedExperiment",
-    function(x) c("assays", "NAMES", callNextMethod())
-)
-
-setMethod("vertical_slot_names", "SummarizedExperiment",
-    function(x) parallel_slot_names(x)
-)
-
-### Like parallel_slot_names() methods, horizontal_slot_names() methods for
-### SummarizedExperiment derivatives should be defined in an incremental
-### fashion, that is, they should only explicitly list the new "horizontal
-### slots" (i.e. the horizontal slots that they add to their parent class).
-### See R/RectangularData-class.R file in the S4Vectors package for what
-### slots should or should not be considered "horizontal".
-setMethod("horizontal_slot_names", "SummarizedExperiment",
-    function(x) "colData"
-)
+.Assays_OR_NULL <- new_union(.Assays, NULL)
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -52,7 +16,7 @@ setMethod("horizontal_slot_names", "SummarizedExperiment",
     if (length(x@assays) == 0L)
         return(NULL)
     assays_nrow <- nrow(x@assays)
-    rowData_nrow <- length(x)
+    rowData_nrow <- nrow(x@elementMetadata)
     if (assays_nrow != rowData_nrow) {
         txt <- sprintf(
             "\n  nb of rows in 'assay' (%d) must equal nb of rows in 'rowData' (%d)",
@@ -67,7 +31,7 @@ setMethod("horizontal_slot_names", "SummarizedExperiment",
     if (length(x@assays) == 0L)
         return(NULL)
     assays_ncol <- ncol(x@assays)
-    colData_nrow <- nrow(colData(x))
+    colData_nrow <- nrow(x@colData)
     if (assays_ncol != colData_nrow) {
         txt <- sprintf(
             "\n  nb of cols in 'assay' (%d) must equal nb of rows in 'colData' (%d)",
@@ -88,26 +52,95 @@ setMethod("horizontal_slot_names", "SummarizedExperiment",
     .valid.SummarizedExperiment.assays_dim(x)
 }
 
-setValidity2("SummarizedExperiment", .valid.SummarizedExperiment)
+.SummarizedExperiment <- new_class("SummarizedExperiment",
+    parent=methods::getClass("Vector"),
+    package=NULL,
+    properties=list(
+        colData=new_property(
+            methods::getClass("DataFrame"),
+            default=quote(S4Vectors::DataFrame())
+        ),
+        assays=new_property(.Assays_OR_NULL, default=NULL),
+        NAMES=new_property(NULL | class_character, default=NULL),
+        elementMetadata=new_property(
+            methods::getClass("DataFrame"),
+            default=quote(S4Vectors::DataFrame())
+        )
+    ),
+    validator=function(self) .valid.SummarizedExperiment(self)
+)
+
+### Combine the new "parallel slots" with those of the parent class. Make
+### sure to put the new parallel slots **first**. See R/Vector-class.R file
+### in the S4Vectors package for what slots should or should not be considered
+### "parallel".
+setMethod("parallel_slot_names", "SummarizedExperiment",
+    function(x) {
+        slots <- character()
+        if (!is.null(x@assays))
+            slots <- c(slots, "assays")
+        if (!is.null(x@NAMES))
+            slots <- c(slots, "NAMES")
+        c(slots, callNextMethod())
+    }
+)
+
+setMethod("vertical_slot_names", "SummarizedExperiment",
+    function(x) parallel_slot_names(x)
+)
+
+### Like parallel_slot_names() methods, horizontal_slot_names() methods for
+### SummarizedExperiment derivatives should be defined in an incremental
+### fashion, that is, they should only explicitly list the new "horizontal
+### slots" (i.e. the horizontal slots that they add to their parent class).
+### See R/RectangularData-class.R file in the S4Vectors package for what
+### slots should or should not be considered "horizontal".
+setMethod("horizontal_slot_names", "SummarizedExperiment",
+    function(x) "colData"
+)
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Accessors
 ###
 
-setMethod("length", "SummarizedExperiment",
+method(length, .SummarizedExperiment) <-
     function(x) nrow(x@elementMetadata)
-)
 
-setMethod("names", "SummarizedExperiment", function(x) x@NAMES)
+method(names, .SummarizedExperiment) <- function(x) x@NAMES
 
-setReplaceMethod("names", "SummarizedExperiment",
+method(`names<-`, .SummarizedExperiment) <-
     function(x, value)
     {
-        NAMES <- S4Vectors:::normarg_names(value, class(x), length(x))
+        NAMES <- S4Vectors:::normarg_names(value, S4Vectors:::class1(x), length(x))
         BiocGenerics:::replaceSlots(x, NAMES=NAMES, check=FALSE)
     }
-)
+
+method(metadata, .SummarizedExperiment) <- function(x, ...) x@metadata
+
+method(`metadata<-`, list(.SummarizedExperiment, class_any)) <-
+    function(x, ..., value) {
+        BiocGenerics:::replaceSlots(x, metadata=as.list(value), check=FALSE)
+    }
+
+method(mcols, .SummarizedExperiment) <-
+    function(x, use.names=TRUE, ...)
+    {
+        ans <- x@elementMetadata
+        if (use.names)
+            rownames(ans) <- names(x)
+        ans
+    }
+
+method(`mcols<-`, list(.SummarizedExperiment, class_any)) <-
+    function(x, ..., value)
+    {
+        value <- as(value, "DataFrame")
+        if (nrow(value) != length(x))
+            stop("nrow of supplied 'mcols' must equal length of object")
+        rownames(value) <- NULL
+        BiocGenerics:::replaceSlots(x, elementMetadata=value, check=FALSE)
+    }
 
 ## rowData, colData seem too vague, but from eSet derived classes wanted to
 ## call the rows / cols something different from 'features' or 'samples', so
@@ -118,23 +151,20 @@ setGeneric("rowData", signature="x",
 )
 
 ### Fix old DataFrame instances on-the-fly (mcols() does it).
-setMethod("rowData", "SummarizedExperiment",
+method(rowData, .SummarizedExperiment) <-
     function(x, use.names=TRUE, ...) mcols(x, use.names=use.names, ...)
-)
 
 setGeneric("rowData<-",
     function(x, ..., value) standardGeneric("rowData<-"))
 
-setReplaceMethod("rowData", "SummarizedExperiment",
+method(`rowData<-`, list(.SummarizedExperiment, class_any)) <-
     function(x, ..., value) `mcols<-`(x, ..., value=value)
-)
 
 setGeneric("colData", function(x, ...) standardGeneric("colData"))
 
 ### Fix old DataFrame instances on-the-fly.
-setMethod("colData", "SummarizedExperiment",
+method(colData, .SummarizedExperiment) <-
     function(x, ...) updateObject(x@colData, check=FALSE)
-)
 
 setGeneric("colData<-",
     function(x, ..., value) standardGeneric("colData<-"))
@@ -160,7 +190,7 @@ setGeneric("assays", signature="x",
     function(x, withDimnames=TRUE, ...) standardGeneric("assays")
 )
 
-setMethod("assays", "SummarizedExperiment",
+method(assays, .SummarizedExperiment) <-
     function(x, withDimnames=TRUE, ...)
 {
     if (!isTRUEorFALSE(withDimnames))
@@ -180,7 +210,7 @@ setMethod("assays", "SummarizedExperiment",
         )
     }
     assays
-})
+}
 
 setGeneric("assays<-", signature=c("x", "value"),
     function(x, withDimnames=TRUE, ..., value) standardGeneric("assays<-"),
@@ -378,27 +408,28 @@ setReplaceMethod("assayNames", c("SummarizedExperiment", "character"),
     x
 })
 
-setMethod("nrow", "SummarizedExperiment", function(x) length(x))
-setMethod("ncol", "SummarizedExperiment", function(x) nrow(colData(x)))
+method(nrow, .SummarizedExperiment) <- function(x) length(x)
+method(ncol, .SummarizedExperiment) <- function(x) nrow(colData(x))
+method(dim, .SummarizedExperiment) <- function(x) c(nrow(x), ncol(x))
 
-setMethod("rownames", "SummarizedExperiment", function(x) names(x))
-setMethod("colnames", "SummarizedExperiment", function(x) rownames(colData(x)))
+method(rownames, .SummarizedExperiment) <- function(x) names(x)
+method(colnames, .SummarizedExperiment) <- function(x) rownames(colData(x))
 
-setReplaceMethod("dimnames", c("SummarizedExperiment", "list"),
+method(dimnames, .SummarizedExperiment) <-
+    function(x) list(rownames(x), colnames(x))
+
+method(`dimnames<-`, .SummarizedExperiment) <-
     function(x, value)
 {
-    NAMES <- S4Vectors:::normarg_names(value[[1L]], class(x), length(x))
+    if (is.null(value)) {
+        dimnames(x) <- list(NULL, NULL)
+        return(x)
+    }
+    NAMES <- S4Vectors:::normarg_names(value[[1L]], S4Vectors:::class1(x), length(x))
     colData <- colData(x)
     rownames(colData) <- value[[2L]]
     BiocGenerics:::replaceSlots(x, NAMES=NAMES, colData=colData, check=FALSE)
-})
-
-setReplaceMethod("dimnames", c("SummarizedExperiment", "NULL"),
-    function(x, value)
-{
-    dimnames(x) <- list(NULL, NULL)
-    x
-})
+}
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -421,11 +452,11 @@ new_SummarizedExperiment <- function(assays, names, rowData, colData,
     } else {
         rownames(rowData) <- NULL
     }
-    new("SummarizedExperiment", NAMES=names,
-                                elementMetadata=rowData,
-                                colData=colData,
-                                assays=assays,
-                                metadata=as.list(metadata))
+    .SummarizedExperiment(NAMES=names,
+                          elementMetadata=rowData,
+                          colData=colData,
+                          assays=assays,
+                          metadata=as.list(metadata))
 }
 
 
@@ -552,7 +583,7 @@ SummarizedExperiment <- function(assays=SimpleList(),
 }
 
 ### TODO: Refactor this to use extractROWS().
-setMethod("[", c("SummarizedExperiment", "ANY", "ANY"),
+method(`[`, .SummarizedExperiment) <-
     function(x, i, j, ..., drop=TRUE)
 {
     if (1L != length(drop) || (!missing(drop) && drop))
@@ -598,11 +629,18 @@ setMethod("[", c("SummarizedExperiment", "ANY", "ANY"),
                        assays=ans_assays,
                        check=FALSE)
         } else {
-            ans <- BiocGenerics:::replaceSlots(x, ...,
-                       elementMetadata=ans_elementMetadata,
-                       NAMES=ans_NAMES,
-                       assays=ans_assays,
-                       check=FALSE)
+            if (is.null(ans_NAMES)) {
+                ans <- BiocGenerics:::replaceSlots(x, ...,
+                           elementMetadata=ans_elementMetadata,
+                           assays=ans_assays,
+                           check=FALSE)
+            } else {
+                ans <- BiocGenerics:::replaceSlots(x, ...,
+                           elementMetadata=ans_elementMetadata,
+                           NAMES=ans_NAMES,
+                           assays=ans_assays,
+                           check=FALSE)
+            }
         }
     } else {
         ans_assays <- x@assays[ii, jj]
@@ -614,20 +652,27 @@ setMethod("[", c("SummarizedExperiment", "ANY", "ANY"),
                        assays=ans_assays,
                        check=FALSE)
         } else {
-            ans <- BiocGenerics:::replaceSlots(x, ...,
-                       elementMetadata=ans_elementMetadata,
-                       NAMES=ans_NAMES,
-                       colData=ans_colData,
-                       assays=ans_assays,
-                       check=FALSE)
+            if (is.null(ans_NAMES)) {
+                ans <- BiocGenerics:::replaceSlots(x, ...,
+                           elementMetadata=ans_elementMetadata,
+                           colData=ans_colData,
+                           assays=ans_assays,
+                           check=FALSE)
+            } else {
+                ans <- BiocGenerics:::replaceSlots(x, ...,
+                           elementMetadata=ans_elementMetadata,
+                           NAMES=ans_NAMES,
+                           colData=ans_colData,
+                           assays=ans_assays,
+                           check=FALSE)
+            }
         }
     }
     ans
-})
+}
 
 ### TODO: Refactor this to use replaceROWS().
-setReplaceMethod("[",
-    c("SummarizedExperiment", "ANY", "ANY", "SummarizedExperiment"),
+method(`[<-`, .SummarizedExperiment) <-
     function(x, i, j, ..., value)
 {
     if (missing(i) && missing(j))
@@ -702,12 +747,20 @@ setReplaceMethod("[",
                        assays=ans_assays,
                        check=FALSE)
         } else {
-            ans <- BiocGenerics:::replaceSlots(x, ...,
-                       metadata=ans_metadata,
-                       elementMetadata=ans_elementMetadata,
-                       NAMES=ans_NAMES,
-                       assays=ans_assays,
-                       check=FALSE)
+            if (is.null(ans_NAMES)) {
+                ans <- BiocGenerics:::replaceSlots(x, ...,
+                           metadata=ans_metadata,
+                           elementMetadata=ans_elementMetadata,
+                           assays=ans_assays,
+                           check=FALSE)
+            } else {
+                ans <- BiocGenerics:::replaceSlots(x, ...,
+                           metadata=ans_metadata,
+                           elementMetadata=ans_elementMetadata,
+                           NAMES=ans_NAMES,
+                           assays=ans_assays,
+                           check=FALSE)
+            }
         }
         msg <- .valid.SummarizedExperiment.assays_nrow(ans)
     } else {
@@ -725,20 +778,29 @@ setReplaceMethod("[",
                        assays=ans_assays,
                        check=FALSE)
         } else {
-            ans <- BiocGenerics:::replaceSlots(x, ...,
-                       metadata=ans_metadata,
-                       elementMetadata=ans_elementMetadata,
-                       NAMES=ans_NAMES,
-                       colData=ans_colData,
-                       assays=ans_assays,
-                       check=FALSE)
+            if (is.null(ans_NAMES)) {
+                ans <- BiocGenerics:::replaceSlots(x, ...,
+                           metadata=ans_metadata,
+                           elementMetadata=ans_elementMetadata,
+                           colData=ans_colData,
+                           assays=ans_assays,
+                           check=FALSE)
+            } else {
+                ans <- BiocGenerics:::replaceSlots(x, ...,
+                           metadata=ans_metadata,
+                           elementMetadata=ans_elementMetadata,
+                           NAMES=ans_NAMES,
+                           colData=ans_colData,
+                           assays=ans_assays,
+                           check=FALSE)
+            }
         }
         msg <- .valid.SummarizedExperiment.assays_dim(ans)
     }
     if (!is.null(msg))
         stop(msg)
     ans
-})
+}
 
 setMethod("subset", "SummarizedExperiment",
     function(x, subset, select, ...)
@@ -1076,4 +1138,3 @@ setMethod("saveRDS", "SummarizedExperiment",
 setMethod("updateObject", "SummarizedExperiment",
     .updateObject_SummarizedExperiment
 )
-

@@ -46,7 +46,6 @@
 ### Assays class
 ###
 
-setClass("Assays", contains="RectangularData", representation("VIRTUAL"))
 ### Should Assays contain Vector? The length would be the 3rd dimension
 ### i.e. the nb of assays (1st and 2nd dimensions being the nb of rows
 ### and cols). That would seem like the right thing to do.
@@ -78,7 +77,12 @@ setClass("Assays", contains="RectangularData", representation("VIRTUAL"))
     NULL
 }
 
-setValidity2("Assays", .valid.Assays)
+.Assays <- new_class("Assays",
+    parent=methods::getClass("RectangularData"),
+    package=NULL,
+    abstract=TRUE,
+    validator=function(self) .valid.Assays(self)
+)
 
 ### Constructor
 
@@ -171,62 +175,46 @@ Assays <- function(assays=SimpleList(), as.null.if.no.assay=FALSE)
     as(assays, "SimpleAssays")
 }
 
-setMethod("updateObject", "Assays", .updateObject_Assays)
+method(updateObject, .Assays) <- .updateObject_Assays
 
 ### Accessors
 
-setMethod("length", "Assays",
-    function(x)
-    {
-        x <- as(x, "SimpleList")
-        callGeneric()
-    }
-)
+method(length, .Assays) <- function(x) length(as(x, "SimpleList"))
 
-setMethod("names", "Assays",
-    function(x)
-    {
-        x <- as(x, "SimpleList")
-        callGeneric()
-    }
-)
+method(names, .Assays) <- function(x) names(as(x, "SimpleList"))
 
-setReplaceMethod("names", "Assays",
+method(`names<-`, .Assays) <-
     function(x, value)
     {
-        ans_class <- class(x)
+        ans_class <- S4Vectors:::class1(x)
         x <- as(x, "SimpleList")
-        as(callGeneric(), ans_class)
+        names(x) <- value
+        as(x, ans_class)
     }
-)
 
-setMethod("getListElement", "Assays",
+method(getListElement, .Assays) <-
     function(x, i, exact=TRUE)
     {
         x <- as(x, "SimpleList")
-        callGeneric()
+        getListElement(x, i, exact=exact)
     }
-)
 
-setMethod("setListElement", "Assays",
+method(setListElement, .Assays) <-
     function(x, i, value)
     {
-        ans_class <- class(x)
+        ans_class <- S4Vectors:::class1(x)
         x <- as(x, "SimpleList")
-        ans <- as(callGeneric(), ans_class)
+        ans <- as(setListElement(x, i, value), ans_class)
         validObject(ans)
         ans
     }
-)
 
-setMethod("dim", "Assays",
-    function(x)
-    {
-        if (length(x) == 0L)
-            return(c(0L, 0L))
-        dim(getListElement(x, 1L))[1:2]
-    }
-)
+method(dim, .Assays) <- function(x)
+{
+    if (length(x) == 0L)
+        return(c(0L, 0L))
+    dim(getListElement(x, 1L))[1:2]
+}
 
 ### 2D-Subsetting
 
@@ -245,12 +233,11 @@ setMethod("dim", "Assays",
         do.call(`[`, args)
     }
     assays <- as(x, "SimpleList")
-    as(endoapply(assays, extract_assay_subset), class(x))
+    as(endoapply(assays, extract_assay_subset), S4Vectors:::class1(x))
 }
 
-setMethod("[", "Assays",
+method(`[`, .Assays) <-
     function(x, i, j, ..., drop=TRUE) .extract_Assays_subset(x, i, j)
-)
 
 ### Subassign each assay in Assays object 'x' along its first 2 dimensions.
 ### If not missing, 'i' and/or 'j' are assumed to be valid subscripts that
@@ -268,12 +255,11 @@ setMethod("[", "Assays",
     }
     assays <- as(x, "SimpleList")
     values <- as(value, "SimpleList")
-    as(mendoapply(replace_assay_subset, assays, values), class(x))
+    as(mendoapply(replace_assay_subset, assays, values), S4Vectors:::class1(x))
 }
 
-setReplaceMethod("[", "Assays",
+method(`[<-`, .Assays) <-
     function(x, i, j, ..., value) .replace_Assays_subset(x, i, j, value)
-)
 
 ### rbind/cbind
 
@@ -318,24 +304,22 @@ setReplaceMethod("[", "Assays",
         })
         names(res) <- uvar
     }
-    as(SimpleList(res), class(getListElement(objects, 1L)))
+    as(SimpleList(res), S4Vectors:::class1(getListElement(objects, 1L)))
 }
 
-setMethod("rbind", "Assays",
+method(rbind, .Assays) <-
     function(..., deparse.level=1)
     {
         objects <- unname(list(...))
         .bind_Assays_objects(objects, along.cols=FALSE)
     }
-)
 
-setMethod("cbind", "Assays",
+method(cbind, .Assays) <-
     function(..., deparse.level=1)
     {
         objects <- unname(list(...))
         .bind_Assays_objects(objects, along.cols=TRUE)
     }
-)
 
 ### Having "arbind" and "acbind" methods for Matrix objects will make rbind()
 ### and cbind() work on Assays objects with Matrix list elements.
@@ -354,15 +338,18 @@ setMethod("acbind", "Matrix", function(...) cbind(...))
 
 ### SimpleAssays cannot contain SimpleList because of the conflicting
 ### semantic of [.
-setClass("SimpleAssays",
-    contains="Assays",
-    representation(data="SimpleList")
+SimpleAssays <- new_class("SimpleAssays",
+    parent=.Assays,
+    package=NULL,
+    properties=list(
+        data=methods::getClass("SimpleList")
+    )
 )
 
 ### We only need to implement the REQUIRED coercions.
 
 setAs("SimpleList", "SimpleAssays",
-    function(from) new2("SimpleAssays", data=from, check=FALSE)
+    function(from) SimpleAssays(data=from)
 )
 
 setAs("SimpleAssays", "SimpleList", function(from) from@data)
@@ -407,44 +394,44 @@ setAs("ShallowSimpleListAssays", "SimpleList", function(from) from$data)
 ### names<-, getListElement, and setListElement.
 ###
 
-setClass("AssaysInEnv",
-    contains="Assays",
-    representation(envir="environment")
+AssaysInEnv <- new_class("AssaysInEnv",
+    parent=.Assays,
+    package=NULL,
+    properties=list(
+        envir=class_environment
+    )
 )
 
 .NAMES_SYMBOL <- ".names"  # must begin with a . so is ommitted by ls() 
 
-setMethod("length", "AssaysInEnv", function(x) length(x@envir) - 1L)
+method(length, AssaysInEnv) <- function(x) length(x@envir) - 1L
 
-setMethod("names", "AssaysInEnv", function(x) x@envir[[.NAMES_SYMBOL]])
+method(names, AssaysInEnv) <- function(x) x@envir[[.NAMES_SYMBOL]]
 
 ### Does NOT respect the copy-on-change contract!
-setReplaceMethod("names", "AssaysInEnv",
+method(`names<-`, AssaysInEnv) <-
     function(x, value)
     {
-        value <- S4Vectors:::normarg_names(value, class(x), length(x))
+        value <- S4Vectors:::normarg_names(value, S4Vectors:::class1(x), length(x))
         x@envir[[.NAMES_SYMBOL]] <- value
         x
     }
-)
 
-setMethod("getListElement", "AssaysInEnv",
+method(getListElement, AssaysInEnv) <-
     function(x, i, exact=TRUE)
     {
         key <- setNames(ls(x@envir, sorted=TRUE), names(x))[[i]]
         get(key, envir=x@envir)
     }
-)
 
 ### Does NOT respect the copy-on-change contract!
-setMethod("setListElement", "AssaysInEnv",
+method(setListElement, AssaysInEnv) <-
     function(x, i, value)
     {
         key <- setNames(ls(x@envir, sorted=TRUE), names(x))[[i]]
         assign(key, value, envir=x@envir)
         x
     }
-)
 
 setAs("SimpleList", "AssaysInEnv",
     function(from)
@@ -455,7 +442,7 @@ setAs("SimpleList", "AssaysInEnv",
         names(from) <- keys
         envir <- list2env(from, parent=emptyenv())
         envir[[.NAMES_SYMBOL]] <- from_names
-        new("AssaysInEnv", envir=envir)
+        AssaysInEnv(envir=envir)
     }
 )
 
@@ -463,4 +450,3 @@ setAs("AssaysInEnv", "SimpleList",
     function(from)
         SimpleList(setNames(as.list(from@envir, sorted=TRUE), names(from)))
 )
-

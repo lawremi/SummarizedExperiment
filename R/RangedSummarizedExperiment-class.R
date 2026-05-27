@@ -4,28 +4,6 @@
 ###
 
 
-### The 'elementMetadata' slot must contain a zero-column DataFrame at all time
-### (this is checked by the validity method). The top-level mcols are stored on
-### the rowRanges component.
-setClass("RangedSummarizedExperiment",
-    contains="SummarizedExperiment",
-    representation(
-        rowRanges="GenomicRanges_OR_GRangesList"
-    ),
-    prototype(
-        rowRanges=GRanges()
-    )
-)
-
-### Combine the new "parallel slots" with those of the parent class. Make
-### sure to put the new parallel slots **first**. See R/Vector-class.R file
-### in the S4Vectors package for what slots should or should not be considered
-### "parallel".
-setMethod("parallel_slot_names", "RangedSummarizedExperiment",
-    function(x) c("rowRanges", callNextMethod())
-)
-
-
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Validity
 ###
@@ -50,7 +28,28 @@ setMethod("parallel_slot_names", "RangedSummarizedExperiment",
     NULL
 }
 
-setValidity2("RangedSummarizedExperiment", .valid.RangedSummarizedExperiment)
+### The 'elementMetadata' slot must contain a zero-column DataFrame at all time
+### (this is checked by the validity method). The top-level mcols are stored on
+### the rowRanges component.
+RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
+    parent=.SummarizedExperiment,
+    package=NULL,
+    properties=list(
+        rowRanges=new_property(
+            methods::getClass("GenomicRanges_OR_GRangesList"),
+            default=quote(GenomicRanges::GRanges())
+        )
+    ),
+    validator=function(self) .valid.RangedSummarizedExperiment(self)
+)
+
+### Combine the new "parallel slots" with those of the parent class. Make
+### sure to put the new parallel slots **first**. See R/Vector-class.R file
+### in the S4Vectors package for what slots should or should not be considered
+### "parallel".
+setMethod("parallel_slot_names", "RangedSummarizedExperiment",
+    function(x) c("rowRanges", callNextMethod())
+)
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -62,11 +61,11 @@ new_RangedSummarizedExperiment <- function(assays, rowRanges, colData,
 {
     assays <- Assays(assays, as.null.if.no.assay=TRUE)
     elementMetadata <- S4Vectors:::make_zero_col_DataFrame(length(rowRanges))
-    new("RangedSummarizedExperiment", rowRanges=rowRanges,
-                                      colData=colData,
-                                      assays=assays,
-                                      elementMetadata=elementMetadata,
-                                      metadata=as.list(metadata))
+    RangedSummarizedExperiment(rowRanges=rowRanges,
+                               colData=colData,
+                               assays=assays,
+                               elementMetadata=elementMetadata,
+                               metadata=as.list(metadata))
 }
 
 
