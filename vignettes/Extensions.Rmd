@@ -564,15 +564,15 @@ setMethod("normalize", "ExampleClass", function(object) {
     # do something exciting, i.e., flip the signs
     new.row <- -rowVec(object, withDimnames=FALSE) 
     new.col <- -colVec(object, withDimnames=FALSE)
-    BiocGenerics:::replaceSlots(object, rowVec=new.row, 
+    set_props(object, rowVec=new.row, 
         colVec=new.col, check=FALSE)
 })
 ```
 
-We use `BiocGenerics:::replaceSlots` instead of the setter methods
+We use `set_props` instead of the setter methods
 that we defined above.  This is because our setters perform validity
 checks that are unnecessary if we know that the modification cannot
-alter the validity of the object.  The `replaceSlots` function allows
+alter the validity of the object.  The `set_props` function allows
 us to skip these validity checks (`check=FALSE`) for greater
 efficiency.
 
@@ -623,7 +623,7 @@ setMethod("[", "ExampleClass", function(x, i, j, drop=TRUE) {
     }
 
     out <- callNextMethod()
-    BiocGenerics:::replaceSlots(out, rowVec=rv, colVec=cv,
+    set_props(out, rowVec=rv, colVec=cv,
         rowToRowMat=rrm, colToColMat=ccm, 
         rowToColMat=rcm, colToRowMat=crm, check=FALSE)
 })
@@ -677,7 +677,7 @@ setReplaceMethod("[", c("ExampleClass", "ANY", "ANY", "ExampleClass"),
     }
 
     out <- callNextMethod()
-    BiocGenerics:::replaceSlots(out, rowVec=rv, colVec=cv,
+    set_props(out, rowVec=rv, colVec=cv,
         rowToRowMat=rrm, colToColMat=ccm, 
         rowToColMat=rcm, colToRowMat=crm, check=FALSE)
 })
@@ -721,7 +721,7 @@ setMethod("rbind", "ExampleClass", function(..., deparse.level=1) {
     on.exit(S4Vectors:::disableValidity(old.validity))
 
     out <- callNextMethod()
-    BiocGenerics:::replaceSlots(out, rowVec=all.rv,
+    set_props(out, rowVec=all.rv,
         rowToRowMat=all.rrm, colToRowMat=all.crm, 
         check=FALSE)
 })
@@ -775,7 +775,7 @@ setMethod("cbind", "ExampleClass", function(..., deparse.level=1) {
     on.exit(S4Vectors:::disableValidity(old.validity))
 
     out <- callNextMethod()
-    BiocGenerics:::replaceSlots(out, colVec=all.cv,
+    set_props(out, colVec=all.cv,
         colToColMat=all.ccm, rowToColMat=all.rcm, 
         check=FALSE)
 })

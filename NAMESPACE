@@ -112,15 +112,6 @@ export(
     assay, "assay<-"
 )
 
-### Exactly the same list as above.
-exportMethods(
-    "rowRanges<-",
-    rowData, "rowData<-",
-    colData, "colData<-",
-    assayNames, "assayNames<-",
-    assays, "assays<-",
-    assay, "assay<-"
-)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Register S3 methods

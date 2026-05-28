@@ -43,13 +43,13 @@ RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
     validator=function(self) .valid.RangedSummarizedExperiment(self)
 )
 
+
 ### Combine the new "parallel slots" with those of the parent class. Make
 ### sure to put the new parallel slots **first**. See R/Vector-class.R file
 ### in the S4Vectors package for what slots should or should not be considered
 ### "parallel".
-setMethod("parallel_slot_names", "RangedSummarizedExperiment",
+method(parallel_slot_names, RangedSummarizedExperiment) <- 
     function(x) c("rowRanges", callNextMethod())
-)
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -110,37 +110,31 @@ setAs("SummarizedExperiment", "RangedSummarizedExperiment",
 ###
 
 ### The rowRanges() generic is defined in the MatrixGenerics package.
-setMethod("rowRanges", "SummarizedExperiment",
+method(rowRanges, .SummarizedExperiment) <- 
     function(x, ...) NULL
-)
 
 ### Fix old GRanges instances on-the-fly.
-setMethod("rowRanges", "RangedSummarizedExperiment",
+method(rowRanges, RangedSummarizedExperiment) <- 
     function(x, ...) updateObject(x@rowRanges, check=FALSE)
-)
 
-setGeneric("rowRanges<-",
-    function(x, ..., value) standardGeneric("rowRanges<-"))
-
-### No-op.
-setReplaceMethod("rowRanges", c("SummarizedExperiment", "NULL"),
-    function(x, ..., value) x
-)
-
-### Degrade 'x' to SummarizedExperiment instance.
-setReplaceMethod("rowRanges", c("RangedSummarizedExperiment", "NULL"),
-    function(x, ..., value) as(x, "SummarizedExperiment", strict=TRUE)
-)
+`rowRanges<-` <- new_generic("rowRanges<-", "x",
+    function(x, ..., value) S7_dispatch())
 
 .SummarizedExperiment.rowRanges.replace <-
     function(x, ..., value)
 {
     if (is(x, "RangedSummarizedExperiment")) {
+        if (is.null(value)) {
+            return(as(x, "SummarizedExperiment", strict=TRUE))
+        }
         x <- updateObject(x, check=FALSE)
     } else {
+        if (is.null(value)) {
+            return(x)
+        }
         x <- as(x, "RangedSummarizedExperiment")
     }
-    x <- BiocGenerics:::replaceSlots(x, ...,
+    x <- set_props(x, ...,
              rowRanges=value,
              elementMetadata=S4Vectors:::make_zero_col_DataFrame(length(value)),
              check=FALSE)
@@ -150,36 +144,36 @@ setReplaceMethod("rowRanges", c("RangedSummarizedExperiment", "NULL"),
     x
 }
 
-setReplaceMethod("rowRanges", c("SummarizedExperiment", "GenomicRanges"),
-    .SummarizedExperiment.rowRanges.replace)
+method(`rowRanges<-`, .SummarizedExperiment) <-
+    .SummarizedExperiment.rowRanges.replace
 
-setReplaceMethod("rowRanges", c("SummarizedExperiment", "GRangesList"),
-    .SummarizedExperiment.rowRanges.replace)
+method(`rowRanges<-`, .SummarizedExperiment) <-
+    .SummarizedExperiment.rowRanges.replace
 
-setMethod("names", "RangedSummarizedExperiment",
+method(names, RangedSummarizedExperiment) <-
     function(x) names(rowRanges(x))
-)
 
-setReplaceMethod("names", "RangedSummarizedExperiment",
+method(`names<-`, RangedSummarizedExperiment) <-
     function(x, value)
 {
     rowRanges <- rowRanges(x)
     names(rowRanges) <- value
-    BiocGenerics:::replaceSlots(x, rowRanges=rowRanges, check=FALSE)
-})
+    set_props(x, rowRanges=rowRanges, check=FALSE)
+}
 
-setReplaceMethod("dimnames", c("RangedSummarizedExperiment", "list"),
+method(`dimnames<-`, RangedSummarizedExperiment) <-
     function(x, value)
 {
+    stopifnot(is.list(value))
     rowRanges <- rowRanges(x)
     names(rowRanges) <- value[[1]]
     colData <- colData(x)
     rownames(colData) <- value[[2]]
-    BiocGenerics:::replaceSlots(x,
+    set_props(x,
         rowRanges=rowRanges,
         colData=colData,
         check=FALSE)
-})
+}
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -188,13 +182,13 @@ setReplaceMethod("dimnames", c("RangedSummarizedExperiment", "list"),
 
 .DollarNames.RangedSummarizedExperiment <- .DollarNames.SummarizedExperiment
 
-setMethod("subset", "RangedSummarizedExperiment",
+method(subset, RangedSummarizedExperiment) <- 
     function(x, subset, select, ...)
 {
     i <- S4Vectors:::evalqForSubset(subset, rowRanges(x), ...)
     j <- S4Vectors:::evalqForSubset(select, colData(x), ...)
     x[i, j]
-})
+}
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -211,39 +205,39 @@ setMethod("subset", "RangedSummarizedExperiment",
 ## Possile to implement, but not yet: Ops, map, window, window<-
 
 ## mcols
-setMethod("mcols", "RangedSummarizedExperiment",
+method(mcols, RangedSummarizedExperiment) <- 
     function(x, use.names=TRUE, ...)
 {
     mcols(rowRanges(x), use.names=use.names, ...)
-})
+}
 
-setReplaceMethod("mcols", "RangedSummarizedExperiment",
+method(`mcols<-`, list(RangedSummarizedExperiment, class_any)) <- 
     function(x, ..., value)
 {
-    BiocGenerics:::replaceSlots(x,
+    set_props(x,
         rowRanges=local({
             r <- rowRanges(x)
             mcols(r) <- value
             r
         }),
         check=FALSE)
-})
+}
 
 ### mcols() is the recommended way for accessing the metadata columns.
 ### Use of values() or elementMetadata() is discouraged.
 
-setMethod("elementMetadata", "RangedSummarizedExperiment",
+method(elementMetadata, RangedSummarizedExperiment) <- 
     function(x, use.names=FALSE, ...)
 {
     elementMetadata(rowRanges(x), use.names=use.names, ...)
-})
+}
 
-setReplaceMethod("elementMetadata", "RangedSummarizedExperiment",
+method(`elementMetadata<-`, list(RangedSummarizedExperiment, class_any)) <- 
     function(x, ..., value)
 {
     elementMetadata(rowRanges(x), ...) <- value
     x
-})
+}
 
 ## Single dispatch, generic signature fun(x, ...)
 local({
@@ -270,18 +264,18 @@ local({
             body(tmpl) <-
                 substitute(do.call(FUN, ARGS),
                            list(FUN=as.symbol(.fun), ARGS=fmls))
-        setMethod(.fun, "RangedSummarizedExperiment", tmpl)
+        eval(bquote(method(.(as.symbol(.fun)), RangedSummarizedExperiment) <- tmpl))
     }
 })
 
-setMethod("granges", "RangedSummarizedExperiment",
+method(granges, RangedSummarizedExperiment) <- 
     function(x, use.mcols=FALSE, ...)
 {
     if (!identical(use.mcols, FALSE))
         stop("\"granges\" method for RangedSummarizedExperiment objects ",
              "does not support the 'use.mcols' argument")
     rowRanges(x)
-})
+}
 
 ## 2-argument dispatch:
 ## pcompare / Compare 
@@ -308,35 +302,35 @@ setMethod("granges", "RangedSummarizedExperiment",
 
 local({
     .signatures <- list(
-        c("RangedSummarizedExperiment", "ANY"),
-        c("ANY", "RangedSummarizedExperiment"),
-        c("RangedSummarizedExperiment", "RangedSummarizedExperiment"))
+        list(RangedSummarizedExperiment, class_any),
+        list(class_any, RangedSummarizedExperiment),
+        list(RangedSummarizedExperiment, RangedSummarizedExperiment))
 
     for (.sig in .signatures) {
-        setMethod("pcompare", .sig, .RangedSummarizedExperiment.pcompare)
-        setMethod("Compare", .sig, .RangedSummarizedExperiment.Compare)
+        method(pcompare, .sig) <- .RangedSummarizedExperiment.pcompare
+        method(Compare, .sig) <- .RangedSummarizedExperiment.Compare
     }
 })
 
 ## additional getters / setters
 
-setReplaceMethod("strand", "RangedSummarizedExperiment",
+method(`strand<-`, list(RangedSummarizedExperiment, class_any)) <- 
     function(x, ..., value)
 {
     strand(rowRanges(x)) <- value
     x
-})
+}
 
-setReplaceMethod("ranges", "RangedSummarizedExperiment",
+method(`ranges<-`, list(RangedSummarizedExperiment, class_any)) <- 
     function(x, ..., value)
 {
     ranges(rowRanges(x)) <- value
     x
-})
+}
 
 ## order, rank, sort
 
-setMethod("is.unsorted", "RangedSummarizedExperiment",
+method(is.unsorted, RangedSummarizedExperiment) <- 
     function(x, na.rm = FALSE, strictly = FALSE, ignore.strand = FALSE)
 {
     x <- rowRanges(x)
@@ -344,9 +338,9 @@ setMethod("is.unsorted", "RangedSummarizedExperiment",
         stop("is.unsorted() is not yet supported when 'rowRanges(x)' is a ",
              class(x), " object")
     callGeneric()
-})
+}
 
-setMethod("order", "RangedSummarizedExperiment",
+method(order, RangedSummarizedExperiment) <- 
     function(..., na.last=TRUE, decreasing=FALSE,
              method=c("auto", "shell", "radix"))
 {
@@ -354,17 +348,17 @@ setMethod("order", "RangedSummarizedExperiment",
     do.call("order", c(args, list(na.last=na.last,
                                   decreasing=decreasing,
                                   method=method)))
-})
+}
 
-setMethod("rank", "RangedSummarizedExperiment",
+method(rank, RangedSummarizedExperiment) <- 
     function(x, na.last = TRUE,
         ties.method = c("average", "first", "last", "random", "max", "min"))
 {
     ties.method <- match.arg(ties.method)
     rank(rowRanges(x), na.last=na.last, ties.method=ties.method)
-})
+}
 
-setMethod("sort", "RangedSummarizedExperiment",
+method(sort, RangedSummarizedExperiment) <- 
     function(x, decreasing = FALSE, ignore.strand = FALSE)
 {
     x_rowRanges <- rowRanges(x)
@@ -375,15 +369,15 @@ setMethod("sort", "RangedSummarizedExperiment",
                                               decreasing = decreasing,
                                               ignore.strand = ignore.strand)
     x[oo]
-})
+}
 
 ## seqinfo (also seqlevels, genome, seqlevels<-, genome<-), seqinfo<-
 
-setMethod("seqinfo", "RangedSummarizedExperiment",
+method(seqinfo, RangedSummarizedExperiment) <- 
     function(x)
 {
     seqinfo(x@rowRanges)
-})
+}
 
 .set_RangedSummarizedExperiment_seqinfo <-
     function(x, new2old=NULL,
@@ -425,15 +419,14 @@ setMethod("seqinfo", "RangedSummarizedExperiment",
         stop(msg)
     x
 }
-setReplaceMethod("seqinfo", "RangedSummarizedExperiment",
+method(`seqinfo<-`, RangedSummarizedExperiment) <- 
     .set_RangedSummarizedExperiment_seqinfo
-)
 
-setMethod("split", "RangedSummarizedExperiment",
+method(split, list(RangedSummarizedExperiment, class_any, class_any)) <- 
     function(x, f, drop=FALSE, ...)
 {
     splitAsList(x, f, drop=drop)
-})
+}
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -447,7 +440,5 @@ setMethod("split", "RangedSummarizedExperiment",
     object
 }
 
-setMethod("updateObject", "RangedSummarizedExperiment",
+method(updateObject, RangedSummarizedExperiment) <- 
     .updateObject_RangedSummarizedExperiment
-)
-
