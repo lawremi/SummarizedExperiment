@@ -27,7 +27,7 @@ test_SummarizedExperiment_GenomicRanges_coercion <- function()
 
         se1 <- as(eset1, "RangedSummarizedExperiment")
 
-        checkTrue(validObject(se1))
+        checkTrue(inherits(S7::validate(se1), RangedSummarizedExperiment))
 
         data("sample.ExpressionSet", package = "Biobase")
 
@@ -36,7 +36,7 @@ test_SummarizedExperiment_GenomicRanges_coercion <- function()
 
         se2 <- as(eset2, "RangedSummarizedExperiment")
 
-        checkTrue(validObject(se2))
+        checkTrue(inherits(S7::validate(se2), RangedSummarizedExperiment))
 
         checkIdentical(experimentData(eset2),
                        metadata(se2)$experimentData)
@@ -157,12 +157,12 @@ test_GenomicRanges_SummarizedExperiment_coercion_mappingFunctions <- function()
 {
     ## naiveRangeMapper
     ## valid object from empty object
-    checkTrue(validObject(makeSummarizedExperimentFromExpressionSet(ExpressionSet())))
+    checkTrue(inherits(S7::validate(makeSummarizedExperimentFromExpressionSet(ExpressionSet())), RangedSummarizedExperiment))
 
     ## valid object from sample ExpressionSet
     data("sample.ExpressionSet", package = "Biobase")
     eset1 <- sample.ExpressionSet
-    checkTrue(validObject(makeSummarizedExperimentFromExpressionSet(eset1)))
+    checkTrue(inherits(S7::validate(makeSummarizedExperimentFromExpressionSet(eset1)), RangedSummarizedExperiment))
 
     ## makeSummarizedExperimentFromExpressionSet should be the same as `as`
     ## with default args
@@ -171,27 +171,27 @@ test_GenomicRanges_SummarizedExperiment_coercion_mappingFunctions <- function()
 
     ## probeRangeMapper
     ## valid object from empty object
-    checkTrue(validObject(
+    checkTrue(inherits(S7::validate(
             makeSummarizedExperimentFromExpressionSet(ExpressionSet(),
-                probeRangeMapper)))
+                probeRangeMapper)), RangedSummarizedExperiment))
 
     ## valid object from sample ExpressionSet
     se1 <- makeSummarizedExperimentFromExpressionSet(eset1, probeRangeMapper)
-    checkTrue(validObject(se1))
+    checkTrue(inherits(S7::validate(se1), RangedSummarizedExperiment))
 
     ## Granges returned have rownames that were from the featureNames
     checkTrue(all(rownames(rowRanges(se1)) %in% featureNames(eset1)))
 
     ## geneRangeMapper
     ## valid object from empty object
-    checkTrue(validObject(
+    checkTrue(inherits(S7::validate(
             makeSummarizedExperimentFromExpressionSet(ExpressionSet(),
-                geneRangeMapper(NULL))))
+                geneRangeMapper(NULL))), RangedSummarizedExperiment))
 
     ## valid object from sample ExpressionSet
     se2 <- makeSummarizedExperimentFromExpressionSet(eset1,
         geneRangeMapper("TxDb.Hsapiens.UCSC.hg19.knownGene"))
-    checkTrue(validObject(se2))
+    checkTrue(inherits(S7::validate(se2), RangedSummarizedExperiment))
 
     ## Granges returned have rownames that were from the featureNames
     checkTrue(all(rownames(rowRanges(se2)) %in% featureNames(eset1)))

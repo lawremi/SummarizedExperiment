@@ -1,3 +1,6 @@
+.SummarizedExperiment <- S7::S7_class(SummarizedExperiment())
+RangedSummarizedExperiment <- S7::S7_class(RangedSummarizedExperiment())
+
 test_combineRows_unnamed <- function() {
     se <- SummarizedExperiment(list(counts=matrix(rpois(1000, 10), ncol=10)))
     colData(se)$A <- 1
@@ -105,7 +108,7 @@ test_combineRows_ranges_named <- function() {
 
     # Returns a vanilla SE.
     out <- combineRows(se, se2, use.names=FALSE)
-    checkIdentical(as.character(class(out)), "SummarizedExperiment")
+    checkTrue(identical(S7::S7_class(out), .SummarizedExperiment))
     checkIdentical(rownames(out), c(rownames(se), rownames(se2)))
 
     # Returns a GRanges.
@@ -154,7 +157,7 @@ test_combineRows_ranges_unnamed <- function() {
 
     # Returns a vanilla SE.
     out <- combineRows(se, se2, use.names=FALSE)
-    checkIdentical(as.character(class(out)), "SummarizedExperiment")
+    checkTrue(identical(S7::S7_class(out), .SummarizedExperiment))
     checkIdentical(nrow(out), nrow(se) + nrow(se2))
 
     # Returns a GRanges.
@@ -294,11 +297,11 @@ test_combineCols_ranges_named <- function() {
 
     # Checking that an SE is returned.
     out <- combineCols(se, se2, use.names=FALSE)
-    checkIdentical(as.character(class(out)), "SummarizedExperiment")
+    checkTrue(identical(S7::S7_class(out), .SummarizedExperiment))
     checkIdentical(rownames(out), rownames(se)) # ignoring other row names when use.names=FALSE.
 
     out <- combineCols(se, se2)
-    checkIdentical(as.character(class(out)), "SummarizedExperiment")
+    checkTrue(identical(S7::S7_class(out), .SummarizedExperiment))
     checkIdentical(rownames(out), union(rownames(se), rownames(se2))) 
 
     # Checking that an RSE is returned.
@@ -308,7 +311,7 @@ test_combineCols_ranges_named <- function() {
     rowRanges(se2) <- ref[21:120]
 
     suppressWarnings(out <- combineCols(se, se2, use.names=FALSE)) # should have a warning here due to differences in values.
-    checkIdentical(as.character(class(out)), "RangedSummarizedExperiment")
+    checkTrue(identical(S7::S7_class(out), RangedSummarizedExperiment))
     checkIdentical(rowRanges(out), rowRanges(se)) 
 
     out <- combineCols(se, se2)
@@ -358,7 +361,7 @@ test_combineCols_ranges_unnamed <- function() {
 
     # Checking that an SE is returned.
     out <- combineCols(se, se2, use.names=FALSE)
-    checkIdentical(as.character(class(out)), "SummarizedExperiment")
+    checkTrue(identical(S7::S7_class(out), .SummarizedExperiment))
     checkIdentical(nrow(out), nrow(se)) 
     checkException(combineCols(se, se2), silent=TRUE)
 
@@ -368,7 +371,7 @@ test_combineCols_ranges_unnamed <- function() {
     rowRanges(se2) <- ref[21:120]
 
     suppressWarnings(out <- combineCols(se, se2, use.names=FALSE)) # should have a warning here due to differences in values.
-    checkIdentical(as.character(class(out)), "RangedSummarizedExperiment")
+    checkTrue(identical(S7::S7_class(out), RangedSummarizedExperiment))
     checkIdentical(rowRanges(out), rowRanges(se)) 
 
     # Checking that mixtures of objects work.

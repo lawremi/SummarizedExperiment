@@ -28,7 +28,7 @@ test_interfaces <- function()
                            "restrict", "trim")
     for (fun in generic_functions) {
         generic <- getGeneric(fun)
-        method <- getMethod(fun, "RangedSummarizedExperiment")
+        method <- getMethod(fun, class(RangedSummarizedExperiment())[[1]])
         checkIdentical("x", generic@signature)
         checkIdentical(formals(generic@.Data), formals(method@.Data))
     }
@@ -37,8 +37,8 @@ test_interfaces <- function()
 test_intra_range_methods <- function()
 {
     identical_SummarizedExperiment <- function(x, y) {
-        x@assays <- as(assays(x), "SimpleAssays")
-        y@assays <- as(assays(y), "SimpleAssays")
+        x@assays <- S7::convert(assays(x), SimpleAssays)
+        y@assays <- S7::convert(assays(y), SimpleAssays)
         identical(x, y)
     }
     #for (i in 1:2) {

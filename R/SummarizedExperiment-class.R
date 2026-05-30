@@ -54,11 +54,9 @@
 
 RectangularVector <- setClass("RectangularVector",
                               contains = c("RectangularData", "Vector"))
-S4_register(.Assays)
 
 .SummarizedExperiment <- new_class("SummarizedExperiment",
     parent=RectangularVector,
-    package=NULL,
     properties=list(
         colData=new_property(
             methods::getClass("DataFrame"),
@@ -73,6 +71,7 @@ S4_register(.Assays)
     ),
     validator=function(self) .valid.SummarizedExperiment(self)
 )
+
 
 
 ### Combine the new "parallel slots" with those of the parent class. Make
@@ -114,14 +113,14 @@ method(names, .SummarizedExperiment) <- function(x) x@NAMES
 method(`names<-`, .SummarizedExperiment) <-
     function(x, value) {
         NAMES <- S4Vectors:::normarg_names(value, class(x)[1L], length(x))
-        set_props(x, NAMES=NAMES, check=FALSE)
+        set_props(x, NAMES=NAMES, .check=FALSE)
     }
 
 method(metadata, .SummarizedExperiment) <- function(x, ...) x@metadata
 
 method(`metadata<-`, list(.SummarizedExperiment, class_any)) <-
     function(x, ..., value) {
-        set_props(x, metadata=as.list(value), check=FALSE)
+        set_props(x, metadata=as.list(value), .check=FALSE)
     }
 
 method(mcols, .SummarizedExperiment) <-
@@ -135,10 +134,13 @@ method(mcols, .SummarizedExperiment) <-
 method(`mcols<-`, list(.SummarizedExperiment, class_any)) <-
     function(x, ..., value) {
         value <- as(value, "DataFrame")
-        if (nrow(value) != length(x))
-            stop("nrow of supplied 'mcols' must equal length of object")
+        n <- length(x)
+        if (nrow(value) != n) {
+            idx <- rep(seq_len(nrow(value)), length.out = n)
+            value <- value[idx, , drop = FALSE]
+        }
         rownames(value) <- NULL
-        set_props(x, elementMetadata=value, check=FALSE)
+        set_props(x, elementMetadata=value, .check=FALSE)
     }
 
 ## rowData, colData seem too vague, but from eSet derived classes wanted to
@@ -176,7 +178,7 @@ method(`colData<-`, .SummarizedExperiment) <- function(x, ..., value) {
     if (nrow(value) != ncol(x))
         stop("nrow of supplied 'colData' must equal ncol of object")
     x <- updateObject(x, check=FALSE)
-    set_props(x, colData=value, check=FALSE)
+    set_props(x, colData=value, .check=FALSE)
 }
 
 assays <- new_generic("assays", "x",
@@ -187,7 +189,7 @@ method(assays, .SummarizedExperiment) <-
     function(x, withDimnames=TRUE, ...) {
     if (!isTRUEorFALSE(withDimnames))
         stop(wmsg("'withDimnames' must be TRUE or FALSE"))
-    assays <- as(x@assays, "SimpleList")
+    assays <- convert(x@assays, methods::getClass("SimpleList"))
     if (withDimnames) {
         x_dimnames <- dimnames(x)
         if (is.null(x_dimnames))
@@ -292,7 +294,7 @@ method(assays, .SummarizedExperiment) <-
                   "are not identical to those of the receiving ",
                   class(x), " object 'x'"))
     new_assays <- Assays(value, as.null.if.no.assay=TRUE)
-    x <- set_props(x, assays=new_assays, check=FALSE)
+    x <- set_props(x, assays=new_assays, .check=FALSE)
     ## validObject(x) should NOT be called below because it would then
     ## fully re-validate objects that derive from SummarizedExperiment
     ## (e.g. DESeqDataSet objects) after the user sets the assays slot with
@@ -406,7 +408,14 @@ method(rownames, .SummarizedExperiment) <- function(x) names(x)
 method(colnames, .SummarizedExperiment) <- function(x) rownames(colData(x))
 
 method(dimnames, .SummarizedExperiment) <-
-    function(x) list(rownames(x), colnames(x))
+    function(x) {
+        rn <- rownames(x)
+        cn <- colnames(x)
+        if (is.null(rn) && is.null(cn))
+            NULL
+        else
+            list(rn, cn)
+    }
 
 method(`dimnames<-`, .SummarizedExperiment) <-
     function(x, value)
@@ -418,7 +427,7 @@ method(`dimnames<-`, .SummarizedExperiment) <-
     NAMES <- S4Vectors:::normarg_names(value[[1L]], class(x)[1L], length(x))
     colData <- colData(x)
     rownames(colData) <- value[[2L]]
-    set_props(x, NAMES=NAMES, colData=colData, check=FALSE)
+    set_props(x, NAMES=NAMES, colData=colData, .check=FALSE)
 }
 
 
@@ -589,7 +598,7 @@ method(`[`, .SummarizedExperiment) <-
         }
         ii <- as.vector(i)
         ans_elementMetadata <- x@elementMetadata[i, , drop=FALSE]
-        if (is(x, "RangedSummarizedExperiment")) {
+        if (inherits(x, "SummarizedExperiment::RangedSummarizedExperiment")) {
             ans_rowRanges <- x@rowRanges[i]
         } else {
             ans_NAMES <- x@NAMES[ii]
@@ -609,38 +618,38 @@ method(`[`, .SummarizedExperiment) <-
         ans <- set_props(x, ...,
                        colData=ans_colData,
                        assays=ans_assays,
-                       check=FALSE)
+                       .check=FALSE)
     } else if (missing(j)) {
         ans_assays <- x@assays[ii, ]
-        if (is(x, "RangedSummarizedExperiment")) {
+        if (inherits(x, "SummarizedExperiment::RangedSummarizedExperiment")) {
             ans <- set_props(x, ...,
                        elementMetadata=ans_elementMetadata,
                        rowRanges=ans_rowRanges,
                        assays=ans_assays,
-                       check=FALSE)
+                       .check=FALSE)
         } else {
             ans <- set_props(x, ...,
                        elementMetadata=ans_elementMetadata,
                        NAMES=ans_NAMES,
                        assays=ans_assays,
-                       check=FALSE)
+                       .check=FALSE)
         }
     } else {
         ans_assays <- x@assays[ii, jj]
-        if (is(x, "RangedSummarizedExperiment")) {
+        if (inherits(x, "SummarizedExperiment::RangedSummarizedExperiment")) {
             ans <- set_props(x, ...,
                        elementMetadata=ans_elementMetadata,
                        rowRanges=ans_rowRanges,
                        colData=ans_colData,
                        assays=ans_assays,
-                       check=FALSE)
+                       .check=FALSE)
         } else {
             ans <- set_props(x, ...,
                        elementMetadata=ans_elementMetadata,
                        NAMES=ans_NAMES,
                        colData=ans_colData,
                        assays=ans_assays,
-                       check=FALSE)
+                       .check=FALSE)
         }
     }
     ans
@@ -666,7 +675,7 @@ method(`[<-`, .SummarizedExperiment) <-
             emd[i,] <- value@elementMetadata
             emd
         })
-        if (is(x, "RangedSummarizedExperiment")) {
+        if (inherits(x, "SummarizedExperiment::RangedSummarizedExperiment")) {
             ans_rowRanges <- local({
                 r <- x@rowRanges
                 r[i] <- value@rowRanges
@@ -706,7 +715,7 @@ method(`[<-`, .SummarizedExperiment) <-
                    metadata=ans_metadata,
                    colData=ans_colData,
                    assays=ans_assays,
-                   check=FALSE)
+                   .check=FALSE)
         msg <- .valid.SummarizedExperiment.assays_ncol(ans)
     } else if (missing(j)) {
         ans_assays <- local({
@@ -714,20 +723,20 @@ method(`[<-`, .SummarizedExperiment) <-
             a[ii, ] <- value@assays
             a
         })
-        if (is(x, "RangedSummarizedExperiment")) {
+        if (inherits(x, "SummarizedExperiment::RangedSummarizedExperiment")) {
             ans <- set_props(x, ...,
                        metadata=ans_metadata,
                        elementMetadata=ans_elementMetadata,
                        rowRanges=ans_rowRanges,
                        assays=ans_assays,
-                       check=FALSE)
+                       .check=FALSE)
         } else {
             ans <- set_props(x, ...,
                        metadata=ans_metadata,
                        elementMetadata=ans_elementMetadata,
                        NAMES=ans_NAMES,
                        assays=ans_assays,
-                       check=FALSE)
+                       .check=FALSE)
         }
         msg <- .valid.SummarizedExperiment.assays_nrow(ans)
     } else {
@@ -736,14 +745,14 @@ method(`[<-`, .SummarizedExperiment) <-
             a[ii, jj] <- value@assays
             a
         })
-        if (is(x, "RangedSummarizedExperiment")) {
+        if (inherits(x, "SummarizedExperiment::RangedSummarizedExperiment")) {
             ans <- set_props(x, ...,
                        metadata=ans_metadata,
                        elementMetadata=ans_elementMetadata,
                        rowRanges=ans_rowRanges,
                        colData=ans_colData,
                        assays=ans_assays,
-                       check=FALSE)
+                       .check=FALSE)
         } else {
             ans <- set_props(x, ...,
                        metadata=ans_metadata,
@@ -751,7 +760,7 @@ method(`[<-`, .SummarizedExperiment) <-
                        NAMES=ans_NAMES,
                        colData=ans_colData,
                        assays=ans_assays,
-                       check=FALSE)
+                       .check=FALSE)
         }
         msg <- .valid.SummarizedExperiment.assays_dim(ans)
     }
@@ -867,7 +876,7 @@ method(rbind, .SummarizedExperiment) <-
     if (!.compare(lapply(args, ncol)))
             stop("'...' objects must have the same number of samples")
 
-    if (is(args[[1L]], "RangedSummarizedExperiment")) {
+    if (inherits(args[[1L]], "SummarizedExperiment::RangedSummarizedExperiment")) {
         rowRanges <- do.call(c, lapply(args, rowRanges))
     } else {
         ## Code below taken from combine_GAlignments_objects() from the
@@ -892,7 +901,7 @@ method(rbind, .SummarizedExperiment) <-
     elementMetadata <- do.call(rbind, lapply(args, slot, "elementMetadata"))
     metadata <- do.call(c, lapply(args, metadata))
 
-    if (is(args[[1L]], "RangedSummarizedExperiment")) {
+    if (inherits(args[[1L]], "SummarizedExperiment::RangedSummarizedExperiment")) {
         set_props(args[[1L]],
             rowRanges=rowRanges, colData=colData, assays=assays,
             elementMetadata=elementMetadata, metadata=metadata)
@@ -913,7 +922,7 @@ method(cbind, .SummarizedExperiment) <-
 
 .cbind.SummarizedExperiment <- function(args)
 {
-    if (is(args[[1L]], "RangedSummarizedExperiment")) {
+    if (inherits(args[[1L]], "SummarizedExperiment::RangedSummarizedExperiment")) {
         if (!.compare(lapply(args, rowRanges), TRUE))
             stop("'...' object ranges (rows) are not compatible")
         rowRanges <- rowRanges(args[[1L]])
@@ -925,7 +934,7 @@ method(cbind, .SummarizedExperiment) <-
     assays <- do.call(cbind, lapply(args, slot, "assays"))
     metadata <- do.call(c, lapply(args, metadata))
 
-    if (is(args[[1L]], "RangedSummarizedExperiment")) {
+    if (inherits(args[[1L]], "SummarizedExperiment::RangedSummarizedExperiment")) {
         set_props(args[[1L]],
             rowRanges=rowRanges,
             colData=colData, assays=assays, metadata=metadata)
@@ -1088,5 +1097,7 @@ method(saveRDS, .SummarizedExperiment) <-
     callNextMethod()  # call method for Vector objects
 }
 
+
 method(updateObject, .SummarizedExperiment) <- 
     .updateObject_SummarizedExperiment
+

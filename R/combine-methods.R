@@ -1,7 +1,7 @@
 # Contains methods for combineRows and combineCols. These serve as more
 # fault-tolerant relaxed counterparts to rbind and cbind, respectively.
 
-setMethod("combineRows", "SummarizedExperiment", function(x, ..., delayed=TRUE, fill=NA, use.names=TRUE) {
+method(combineRows, .SummarizedExperiment) <- function(x, ..., delayed=TRUE, fill=NA, use.names=TRUE) {
     all.se <- list(x, ...)
 
     # Combining the rowData.
@@ -76,7 +76,7 @@ setMethod("combineRows", "SummarizedExperiment", function(x, ..., delayed=TRUE, 
 
     # Assembling the SE.
     do.call(SummarizedExperiment, args)
-})
+}
 
 combine_assays_by <- function(all.se, mappings, delayed, fill, by.row) {
     all.assays <- lapply(all.se, assays, withDimnames=FALSE)
@@ -180,7 +180,7 @@ inflate_matrix_by_row <- function(mat, idx, delayed, fill) {
 }
 
 extract_granges_from_se <- function(all.se) {
-    has.ranges <- vapply(all.se, is, class2="RangedSummarizedExperiment", FUN.VALUE=TRUE)
+    has.ranges <- vapply(all.se, inherits, what="SummarizedExperiment::RangedSummarizedExperiment", FUN.VALUE=TRUE)
     if (!any(has.ranges)) {
         return(NULL)
     }
@@ -207,7 +207,7 @@ extract_granges_from_se <- function(all.se) {
     final.rr
 }
 
-setMethod("combineCols", "SummarizedExperiment", function(x, ..., delayed=TRUE, fill=NA, use.names=TRUE) {
+method(combineCols, list(.SummarizedExperiment, class_any)) <- function(x, ..., delayed=TRUE, fill=NA, use.names=TRUE) {
     all.se <- list(x, ...)
 
     # Combining the rowData. This constructs mappings of the rows for each
@@ -256,7 +256,7 @@ setMethod("combineCols", "SummarizedExperiment", function(x, ..., delayed=TRUE, 
 
     # Assembling the SE.
     do.call(SummarizedExperiment, args)
-})
+}
 
 merge_granges_from_se <- function(all.se, mappings) {
     extracted <- extract_granges_from_se(all.se)

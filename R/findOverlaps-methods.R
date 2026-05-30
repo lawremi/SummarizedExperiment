@@ -5,38 +5,32 @@
 
 ### findOverlaps
 
-setMethod("findOverlaps", c("RangedSummarizedExperiment", "Vector"),
+method(findOverlaps, list(RangedSummarizedExperiment, methods::getClass("Vector"))) <-
     function(query, subject, maxgap=-1L, minoverlap=0L,
              type=c("any", "start", "end", "within", "equal"),
              select=c("all", "first", "last", "arbitrary"),
              ignore.strand=FALSE)
     {
-        query <- rowRanges(query)
-        callGeneric()
+        findOverlaps(rowRanges(query), subject, maxgap=maxgap, minoverlap=minoverlap,
+                     type=type, select=select, ignore.strand=ignore.strand)
     }
-)
 
-setMethod("findOverlaps", c("Vector", "RangedSummarizedExperiment"),
+method(findOverlaps, list(methods::getClass("Vector"), RangedSummarizedExperiment)) <-
     function(query, subject, maxgap=-1L, minoverlap=0L,
              type=c("any", "start", "end", "within", "equal"),
              select=c("all", "first", "last", "arbitrary"),
              ignore.strand=FALSE)
     {
-        subject <- rowRanges(subject)
-        callGeneric()
+        findOverlaps(query, rowRanges(subject), maxgap=maxgap, minoverlap=minoverlap,
+                     type=type, select=select, ignore.strand=ignore.strand)
     }
-)
 
-setMethod("findOverlaps", c("RangedSummarizedExperiment",
-                            "RangedSummarizedExperiment"),
+method(findOverlaps, list(RangedSummarizedExperiment, RangedSummarizedExperiment)) <-
     function(query, subject, maxgap=-1L, minoverlap=0L,
              type=c("any", "start", "end", "within", "equal"),
              select=c("all", "first", "last", "arbitrary"),
              ignore.strand=FALSE)
     {
-        query <- rowRanges(query)
-        subject <- rowRanges(subject)
-        callGeneric()
+        findOverlaps(rowRanges(query), rowRanges(subject), maxgap=maxgap, minoverlap=minoverlap,
+                     type=type, select=select, ignore.strand=ignore.strand)
     }
-)
-

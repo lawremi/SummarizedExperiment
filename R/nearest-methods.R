@@ -6,112 +6,101 @@
 
 ### precede & follow
 
-for (f in c("precede", "follow")) {
-    setMethod(f, c("RangedSummarizedExperiment", "ANY"),
-        function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
-        {
-            x <- rowRanges(x)
-            callGeneric()
-        }
-    )
-    setMethod(f, c("ANY", "RangedSummarizedExperiment"),
-        function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
-        {
-            subject <- rowRanges(subject)
-            callGeneric()
-        }
-    )
-    setMethod(f, c("RangedSummarizedExperiment", "RangedSummarizedExperiment"),
-        function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
-        {
-            x <- rowRanges(x)
-            subject <- rowRanges(subject)
-            callGeneric()
-        }
-    )
+method(precede, list(RangedSummarizedExperiment, class_any)) <-
+    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+{
+    precede(rowRanges(x), subject, select=select, ignore.strand=ignore.strand)
 }
+
+method(precede, list(class_any, RangedSummarizedExperiment)) <-
+    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+{
+    precede(x, rowRanges(subject), select=select, ignore.strand=ignore.strand)
+}
+
+method(precede, list(RangedSummarizedExperiment, RangedSummarizedExperiment)) <-
+    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+{
+    precede(rowRanges(x), rowRanges(subject), select=select, ignore.strand=ignore.strand)
+}
+
+method(follow, list(RangedSummarizedExperiment, class_any)) <-
+    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+{
+    follow(rowRanges(x), subject, select=select, ignore.strand=ignore.strand)
+}
+
+method(follow, list(class_any, RangedSummarizedExperiment)) <-
+    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+{
+    follow(x, rowRanges(subject), select=select, ignore.strand=ignore.strand)
+}
+
+method(follow, list(RangedSummarizedExperiment, RangedSummarizedExperiment)) <-
+    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+{
+    follow(rowRanges(x), rowRanges(subject), select=select, ignore.strand=ignore.strand)
+}
+
 
 ### nearest
 
-setMethod("nearest", c("RangedSummarizedExperiment", "ANY"),
+method(nearest, list(RangedSummarizedExperiment, class_any)) <-
     function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
-    {
-        x <- rowRanges(x)
-        callGeneric()
-    }
-)
+{
+    nearest(rowRanges(x), subject, select=select, ignore.strand=ignore.strand)
+}
 
-setMethod("nearest", c("ANY", "RangedSummarizedExperiment"),
+method(nearest, list(class_any, RangedSummarizedExperiment)) <-
     function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
-    {
-        subject <- rowRanges(subject)
-        callGeneric()
-    }
-)
+{
+    nearest(x, rowRanges(subject), select=select, ignore.strand=ignore.strand)
+}
 
-setMethod("nearest", c("RangedSummarizedExperiment",
-                       "RangedSummarizedExperiment"),
+method(nearest, list(RangedSummarizedExperiment, RangedSummarizedExperiment)) <-
     function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
-    {
-        x <- rowRanges(x)
-        subject <- rowRanges(subject)
-        callGeneric()
-    }
-)
+{
+    nearest(rowRanges(x), rowRanges(subject), select=select, ignore.strand=ignore.strand)
+}
+
 
 ### distance
 
-setMethod("distance", c("RangedSummarizedExperiment", "ANY"),
+method(distance, list(RangedSummarizedExperiment, class_any)) <-
     function(x, y, ignore.strand=FALSE, ...)
-    {
-        x <- rowRanges(x)
-        callGeneric()
-    }
-)
+{
+    distance(rowRanges(x), y, ignore.strand=ignore.strand, ...)
+}
 
-setMethod("distance", c("ANY", "RangedSummarizedExperiment"),
+method(distance, list(class_any, RangedSummarizedExperiment)) <-
     function(x, y, ignore.strand=FALSE, ...)
-    {
-        y <- rowRanges(y)
-        callGeneric()
-    }
-)
+{
+    distance(x, rowRanges(y), ignore.strand=ignore.strand, ...)
+}
 
-setMethod("distance", c("RangedSummarizedExperiment",
-                        "RangedSummarizedExperiment"),
+method(distance, list(RangedSummarizedExperiment, RangedSummarizedExperiment)) <-
     function(x, y, ignore.strand=FALSE, ...)
-    {
-        x <- rowRanges(x)
-        y <- rowRanges(y)
-        callGeneric()
-    }
-)
+{
+    distance(rowRanges(x), rowRanges(y), ignore.strand=ignore.strand, ...)
+}
+
 
 ### distanceToNearest
 
-setMethod("distanceToNearest", c("RangedSummarizedExperiment", "ANY"),
+method(distanceToNearest, list(RangedSummarizedExperiment, class_any)) <-
     function(x, subject, ignore.strand=FALSE, ...)
-    {
-        x <- rowRanges(x)
-        callGeneric()
-    }
-)
+{
+    distanceToNearest(rowRanges(x), subject, ignore.strand=ignore.strand, ...)
+}
 
-setMethod("distanceToNearest", c("ANY", "RangedSummarizedExperiment"),
+method(distanceToNearest, list(class_any, RangedSummarizedExperiment)) <-
     function(x, subject, ignore.strand=FALSE, ...)
-    {
-        subject <- rowRanges(subject)
-        callGeneric()
-    }
-)
+{
+    distanceToNearest(x, rowRanges(subject), ignore.strand=ignore.strand, ...)
+}
 
-setMethod("distanceToNearest", c("RangedSummarizedExperiment",
-                                 "RangedSummarizedExperiment"),
+method(distanceToNearest, list(RangedSummarizedExperiment, RangedSummarizedExperiment)) <-
     function(x, subject, ignore.strand=FALSE, ...)
-    {
-        x <- rowRanges(x)
-        subject <- rowRanges(subject)
-        callGeneric()
-    }
-)
-
+{
+    distanceToNearest(rowRanges(x), rowRanges(subject), ignore.strand=ignore.strand, ...)
+}

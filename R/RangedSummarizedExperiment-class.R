@@ -33,7 +33,6 @@
 ### the rowRanges component.
 RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
     parent=.SummarizedExperiment,
-    package=NULL,
     properties=list(
         rowRanges=new_property(
             methods::getClass("GenomicRanges_OR_GRangesList"),
@@ -42,6 +41,7 @@ RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
     ),
     validator=function(self) .valid.RangedSummarizedExperiment(self)
 )
+
 
 
 ### Combine the new "parallel slots" with those of the parent class. Make
@@ -85,9 +85,9 @@ new_RangedSummarizedExperiment <- function(assays, rowRanges, colData,
                              from@metadata)
 }
 
-setAs("RangedSummarizedExperiment", "SummarizedExperiment",
-    .from_RangedSummarizedExperiment_to_SummarizedExperiment
-)
+method(convert, list(RangedSummarizedExperiment, .SummarizedExperiment)) <- function(from, to) {
+    .from_RangedSummarizedExperiment_to_SummarizedExperiment(from)
+}
 
 .from_SummarizedExperiment_to_RangedSummarizedExperiment <- function(from)
 {
@@ -100,9 +100,10 @@ setAs("RangedSummarizedExperiment", "SummarizedExperiment",
                                    from@metadata)
 }
 
-setAs("SummarizedExperiment", "RangedSummarizedExperiment",
-    .from_SummarizedExperiment_to_RangedSummarizedExperiment
-)
+method(convert, list(.SummarizedExperiment, RangedSummarizedExperiment)) <- function(from, to) {
+    .from_SummarizedExperiment_to_RangedSummarizedExperiment(from)
+}
+
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,21 +124,21 @@ method(rowRanges, RangedSummarizedExperiment) <-
 .SummarizedExperiment.rowRanges.replace <-
     function(x, ..., value)
 {
-    if (is(x, "RangedSummarizedExperiment")) {
+    if (inherits(x, RangedSummarizedExperiment)) {
         if (is.null(value)) {
-            return(as(x, "SummarizedExperiment", strict=TRUE))
+            return(convert(x, .SummarizedExperiment))
         }
         x <- updateObject(x, check=FALSE)
     } else {
         if (is.null(value)) {
             return(x)
         }
-        x <- as(x, "RangedSummarizedExperiment")
+        x <- convert(x, RangedSummarizedExperiment)
     }
     x <- set_props(x, ...,
              rowRanges=value,
              elementMetadata=S4Vectors:::make_zero_col_DataFrame(length(value)),
-             check=FALSE)
+             .check=FALSE)
     msg <- .valid.SummarizedExperiment.assays_nrow(x)
     if (!is.null(msg))
         stop(msg)
@@ -158,7 +159,7 @@ method(`names<-`, RangedSummarizedExperiment) <-
 {
     rowRanges <- rowRanges(x)
     names(rowRanges) <- value
-    set_props(x, rowRanges=rowRanges, check=FALSE)
+    set_props(x, rowRanges=rowRanges, .check=FALSE)
 }
 
 method(`dimnames<-`, RangedSummarizedExperiment) <-
@@ -172,7 +173,7 @@ method(`dimnames<-`, RangedSummarizedExperiment) <-
     set_props(x,
         rowRanges=rowRanges,
         colData=colData,
-        check=FALSE)
+        .check=FALSE)
 }
 
 
@@ -220,7 +221,7 @@ method(`mcols<-`, list(RangedSummarizedExperiment, class_any)) <-
             mcols(r) <- value
             r
         }),
-        check=FALSE)
+        .check=FALSE)
 }
 
 ### mcols() is the recommended way for accessing the metadata columns.
@@ -283,9 +284,9 @@ method(granges, RangedSummarizedExperiment) <-
 .RangedSummarizedExperiment.pcompare <-
     function(x, y)
 {
-    if (is(x, "RangedSummarizedExperiment"))
+    if (inherits(x, RangedSummarizedExperiment))
         x <- rowRanges(x)
-    if (is(y, "RangedSummarizedExperiment"))
+    if (inherits(y, RangedSummarizedExperiment))
         y <- rowRanges(y)
     pcompare(x, y)
 }
@@ -293,9 +294,9 @@ method(granges, RangedSummarizedExperiment) <-
 .RangedSummarizedExperiment.Compare <-
     function(e1, e2)
 {
-    if (is(e1, "RangedSummarizedExperiment"))
+    if (inherits(e1, RangedSummarizedExperiment))
         e1 <- rowRanges(e1)
-    if (is(e2, "RangedSummarizedExperiment"))
+    if (inherits(e2, RangedSummarizedExperiment))
         e2 <- rowRanges(e2)
     callGeneric(e1=e1, e2=e2)
 }
@@ -442,3 +443,4 @@ method(split, list(RangedSummarizedExperiment, class_any, class_any)) <-
 
 method(updateObject, RangedSummarizedExperiment) <- 
     .updateObject_RangedSummarizedExperiment
+

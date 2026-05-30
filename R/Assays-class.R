@@ -54,11 +54,11 @@
 #    representation("VIRTUAL")
 #)
 
-### Validity
+.SimpleList_class <- methods::getClass("SimpleList")
 
 .valid.Assays <- function(x)
 {
-    assays <- try(as(x, "SimpleList"), silent=TRUE)
+    assays <- try(convert(x, .SimpleList_class), silent=TRUE)
     if (inherits(assays, "try-error"))
         return("'as(x, \"SimpleList\")' must work")
     if (!is(assays, "SimpleList"))
@@ -79,7 +79,6 @@
 
 .Assays <- new_class("Assays",
     parent=methods::getClass("RectangularData"),
-    package=NULL,
     abstract=TRUE,
     validator=function(self) .valid.Assays(self)
 )
@@ -147,13 +146,13 @@ Assays <- function(assays=SimpleList(), as.null.if.no.assay=FALSE)
         if (is(assays, "Assays")) {
             ## Will turn any Assays derivative (e.g. ShallowSimpleListAssays)
             ## into a SimpleAssays object.
-            assays <- as(as(assays, "SimpleList"), "SimpleAssays")
+            assays <- convert(convert(assays, .SimpleList_class), SimpleAssays)
         } else {
             assays <- normarg_assays(assays, as.null.if.no.assay)
             if (is.null(assays))
                 return(NULL)
-            assays <- as(assays, "SimpleAssays")
-            validObject(assays)
+            assays <- convert(assays, SimpleAssays)
+            validate(assays)
         }
     }
     if (length(assays) == 0L && as.null.if.no.assay)
@@ -165,47 +164,45 @@ Assays <- function(assays=SimpleList(), as.null.if.no.assay=FALSE)
 
 .updateObject_Assays <- function(object, ..., verbose=FALSE)
 {
-    assays <- as(object, "SimpleList")
+    assays <- convert(object, .SimpleList_class)
     assays <- endoapply(assays,
         function(assay)
             updateObject(assay, ..., verbose=verbose)
     )
     if (length(assays) == 0L)
         return(NULL)
-    as(assays, "SimpleAssays")
+    convert(assays, SimpleAssays)
 }
 
 method(updateObject, .Assays) <- .updateObject_Assays
 
 ### Accessors
 
-method(length, .Assays) <- function(x) length(as(x, "SimpleList"))
+method(length, .Assays) <- function(x) length(convert(x, .SimpleList_class))
 
-method(names, .Assays) <- function(x) names(as(x, "SimpleList"))
+method(names, .Assays) <- function(x) names(convert(x, .SimpleList_class))
 
 method(`names<-`, .Assays) <-
     function(x, value)
     {
-        ans_class <- S4Vectors:::class1(x)
-        x <- as(x, "SimpleList")
+        x <- convert(x, .SimpleList_class)
         names(x) <- value
-        as(x, ans_class)
+        convert(x, S7_class(x))
     }
 
 method(getListElement, .Assays) <-
     function(x, i, exact=TRUE)
     {
-        x <- as(x, "SimpleList")
+        x <- convert(x, .SimpleList_class)
         getListElement(x, i, exact=exact)
     }
 
 method(setListElement, .Assays) <-
     function(x, i, value)
     {
-        ans_class <- S4Vectors:::class1(x)
-        x <- as(x, "SimpleList")
-        ans <- as(setListElement(x, i, value), ans_class)
-        validObject(ans)
+        x <- convert(x, .SimpleList_class)
+        ans <- convert(setListElement(x, i, value), S7_class(x))
+        validate(ans)
         ans
     }
 
@@ -232,8 +229,8 @@ method(dim, .Assays) <- function(x)
         args <- c(list(a), subscripts12, more_subscripts, list(drop=FALSE))
         do.call(`[`, args)
     }
-    assays <- as(x, "SimpleList")
-    as(endoapply(assays, extract_assay_subset), S4Vectors:::class1(x))
+    assays <- convert(x, .SimpleList_class)
+    convert(endoapply(assays, extract_assay_subset), S7_class(x))
 }
 
 method(`[`, .Assays) <-
@@ -253,9 +250,9 @@ method(`[`, .Assays) <-
         args <- c(list(a), subscripts12, more_subscripts, list(value=v))
         do.call(`[<-`, args)
     }
-    assays <- as(x, "SimpleList")
-    values <- as(value, "SimpleList")
-    as(mendoapply(replace_assay_subset, assays, values), S4Vectors:::class1(x))
+    assays <- convert(x, .SimpleList_class)
+    values <- convert(value, .SimpleList_class)
+    convert(mendoapply(replace_assay_subset, assays, values), S7_class(x))
 }
 
 method(`[<-`, .Assays) <-
@@ -304,7 +301,7 @@ method(`[<-`, .Assays) <-
         })
         names(res) <- uvar
     }
-    as(SimpleList(res), S4Vectors:::class1(getListElement(objects, 1L)))
+    convert(SimpleList(res), S7_class(getListElement(objects, 1L)))
 }
 
 method(rbind, .Assays) <-
@@ -340,7 +337,6 @@ setMethod("acbind", "Matrix", function(...) cbind(...))
 ### semantic of [.
 SimpleAssays <- new_class("SimpleAssays",
     parent=.Assays,
-    package=NULL,
     properties=list(
         data=methods::getClass("SimpleList")
     )
@@ -348,11 +344,11 @@ SimpleAssays <- new_class("SimpleAssays",
 
 ### We only need to implement the REQUIRED coercions.
 
-setAs("SimpleList", "SimpleAssays",
-    function(from) SimpleAssays(data=from)
-)
+method(convert, list(methods::getClass("SimpleList"), SimpleAssays)) <-
+    function(from, to) SimpleAssays(data=from)
 
-setAs("SimpleAssays", "SimpleList", function(from) from@data)
+method(convert, list(SimpleAssays, methods::getClass("SimpleList"))) <-
+    function(from, to) from@data
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -373,7 +369,7 @@ setAs("SimpleAssays", "SimpleList", function(from) from@data)
 
 .ShallowSimpleListAssays0 <- setRefClass("ShallowSimpleListAssays",
     fields = list( data = "SimpleList" ),
-    contains = c("ShallowData", "Assays"))
+    contains = c("ShallowData", "SummarizedExperiment::Assays"))
 
 ### We only need to implement the REQUIRED coercions.
 
@@ -396,7 +392,6 @@ setAs("ShallowSimpleListAssays", "SimpleList", function(from) from$data)
 
 AssaysInEnv <- new_class("AssaysInEnv",
     parent=.Assays,
-    package=NULL,
     properties=list(
         envir=class_environment
     )
@@ -433,8 +428,8 @@ method(setListElement, AssaysInEnv) <-
         x
     }
 
-setAs("SimpleList", "AssaysInEnv",
-    function(from)
+method(convert, list(methods::getClass("SimpleList"), AssaysInEnv)) <-
+    function(from, to)
     {
         from <- as.list(from)
         from_names <- names(from)
@@ -444,9 +439,7 @@ setAs("SimpleList", "AssaysInEnv",
         envir[[.NAMES_SYMBOL]] <- from_names
         AssaysInEnv(envir=envir)
     }
-)
 
-setAs("AssaysInEnv", "SimpleList",
-    function(from)
+method(convert, list(AssaysInEnv, methods::getClass("SimpleList"))) <-
+    function(from, to)
         SimpleList(setNames(as.list(from@envir, sorted=TRUE), names(from)))
-)

@@ -4,19 +4,14 @@
 ###
 
 
-setMethod("isDisjoint", "RangedSummarizedExperiment",
+method(isDisjoint, RangedSummarizedExperiment) <-
     function(x, ignore.strand=FALSE)
     {
-        x <- rowRanges(x)
-        callGeneric()
+        isDisjoint(rowRanges(x), ignore.strand=ignore.strand)
     }
-)
 
-setMethod("disjointBins", "RangedSummarizedExperiment",
-    function(x, ignore.strand = FALSE)
+method(disjointBins, RangedSummarizedExperiment) <-
+    function(x, ignore.strand=FALSE)
     {
-        x <- rowRanges(x)
-        callGeneric()
+        disjointBins(rowRanges(x), ignore.strand=ignore.strand)
     }
-)
-

@@ -31,10 +31,11 @@ rseList <-
 
 test_interfaces <- function()
 {
+    rse_class <- class(RangedSummarizedExperiment())[[1]]
     method_signatures <- list(
-        c("RangedSummarizedExperiment", "ANY"),
-        c("ANY", "RangedSummarizedExperiment"),
-        c("RangedSummarizedExperiment", "RangedSummarizedExperiment")
+        c(rse_class, "ANY"),
+        c("ANY", rse_class),
+        c(rse_class, rse_class)
     )
     for (fun in names(.GENERIC_SIGNATURES)) {
         generic <- getGeneric(fun)

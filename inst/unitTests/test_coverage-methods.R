@@ -26,7 +26,7 @@ test_interfaces <- function()
     generic_functions <- "coverage"
     for (fun in generic_functions) {
         generic <- getGeneric(fun)
-        method <- getMethod(fun, "RangedSummarizedExperiment")
+        method <- getMethod(fun, class(RangedSummarizedExperiment())[[1]])
         checkIdentical("x", generic@signature)
         checkIdentical(formals(generic@.Data), formals(method@.Data))
     }

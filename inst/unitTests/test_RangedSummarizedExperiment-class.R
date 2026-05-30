@@ -35,12 +35,12 @@ test_RangedSummarizedExperiment_construction <- function()
 {
     ## empty-ish
     m1 <- matrix(0, 0, 0)
-    checkTrue(validObject(new("RangedSummarizedExperiment")))
+    checkTrue(inherits(S7::validate(RangedSummarizedExperiment()), RangedSummarizedExperiment))
 
     ## substance
     for (i in seq_along(rseList)) {
         rse <- rseList[[i]]
-        checkTrue(validObject(rse))
+        checkTrue(inherits(S7::validate(rse), RangedSummarizedExperiment))
         checkIdentical(SimpleList(m=mList[[i]]), assays(rse))
         checkIdentical(rowRangesList[[i]], rowRanges(rse))
         checkIdentical(DataFrame(x=letters[1:3]), colData(rse))
@@ -49,7 +49,7 @@ test_RangedSummarizedExperiment_construction <- function()
     ## array in assays slot
     ss <- rseList[[1]]
     assays(ss) <- SimpleList(array(1:5, c(5,3,2)))
-    checkTrue(validObject(ss))
+    checkTrue(inherits(S7::validate(ss), RangedSummarizedExperiment))
     checkTrue(all(dim(assays(ss[1:3,1:2])[[1]]) == c(3, 2, 2)))
 }
 
@@ -331,17 +331,17 @@ test_RangedSummarizedExperiment_GRanges_API <- function()
 
     for (.fun in .singleDispatch) {
         generic <- getGeneric(.fun)
-        method <- getMethod(.fun, "RangedSummarizedExperiment")
+        method <- getMethod(.fun, "SummarizedExperiment::RangedSummarizedExperiment")
         checkIdentical("x", generic@signature)
         checkIdentical(formals(generic@.Data), formals(method@.Data))
     }
 
     ## FIXME: pcompare, Compare
 
-    .sig <- "RangedSummarizedExperiment"
+    .sig <- "SummarizedExperiment::RangedSummarizedExperiment"
     for (.fun in .otherFuns) {
         generic <- getGeneric(.fun)
-        method <- getMethod(.fun, "RangedSummarizedExperiment")
+        method <- getMethod(.fun, "SummarizedExperiment::RangedSummarizedExperiment")
         checkIdentical(formals(generic@.Data), formals(method@.Data))
     }        
 }

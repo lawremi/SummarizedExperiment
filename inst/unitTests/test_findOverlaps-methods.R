@@ -24,10 +24,11 @@ rseList <-
 test_interfaces <- function()
 {
     fun <- "findOverlaps"
+    rse_class <- class(RangedSummarizedExperiment())[[1]]
     signatures <- list(
-        c("RangedSummarizedExperiment", "Vector"),
-        c("Vector", "RangedSummarizedExperiment"),
-        c("RangedSummarizedExperiment", "RangedSummarizedExperiment")
+        c(rse_class, "Vector"),
+        c("Vector", rse_class),
+        c(rse_class, rse_class)
     )
     generic <- getGeneric(fun)
     for (sig in signatures) {
@@ -40,8 +41,8 @@ test_interfaces <- function()
 test_findOverlaps_methods <- function()
 {
     identical_SummarizedExperiment <- function(x, y) {
-        x@assays <- as(assays(x), "SimpleAssays")
-        y@assays <- as(assays(y), "SimpleAssays")
+        x@assays <- S7::convert(assays(x), SimpleAssays)
+        y@assays <- S7::convert(assays(y), SimpleAssays)
         identical(x, y)
     }
     for (i in 1:2) {

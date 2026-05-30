@@ -11,8 +11,8 @@ DF <- DataFrame(c(range_info, expr_info), row.names = rowNames)
 
 test_makeSummarizedExperimentFromDataFrame <- function()
 {
-    validObject(makeSummarizedExperimentFromDataFrame(df))
-    validObject(makeSummarizedExperimentFromDataFrame(DF))
+    S7::validate(makeSummarizedExperimentFromDataFrame(df))
+    S7::validate(makeSummarizedExperimentFromDataFrame(DF))
 
     rangesA <- GRanges(as.data.frame(range_info, row.names = rowNames))
     rangesB <- rowRanges(makeSummarizedExperimentFromDataFrame(df))

@@ -20,9 +20,7 @@ import(DelayedArray)
 ###
 
 exportClasses(
-    Assays, SimpleAssays, ShallowData, ShallowSimpleListAssays,
-    SummarizedExperiment,
-    RangedSummarizedExperiment
+    ShallowData, ShallowSimpleListAssays
 )
 
 
@@ -88,7 +86,9 @@ exportMethods(
 
 export(
     Assays,
+    SimpleAssays,
     SummarizedExperiment,
+    RangedSummarizedExperiment,
     .DollarNames.SummarizedExperiment,
     .DollarNames.RangedSummarizedExperiment,
     makeSummarizedExperimentFromExpressionSet,
