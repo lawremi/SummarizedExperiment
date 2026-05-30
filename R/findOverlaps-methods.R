@@ -5,7 +5,7 @@
 
 ### findOverlaps
 
-method(findOverlaps, list(RangedSummarizedExperiment, methods::getClass("Vector"))) <-
+method(findOverlaps, list(RangedSummarizedExperiment, Vector_class)) <-
     function(query, subject, maxgap=-1L, minoverlap=0L,
              type=c("any", "start", "end", "within", "equal"),
              select=c("all", "first", "last", "arbitrary"),
@@ -15,7 +15,7 @@ method(findOverlaps, list(RangedSummarizedExperiment, methods::getClass("Vector"
                      type=type, select=select, ignore.strand=ignore.strand)
     }
 
-method(findOverlaps, list(methods::getClass("Vector"), RangedSummarizedExperiment)) <-
+method(findOverlaps, list(Vector_class, RangedSummarizedExperiment)) <-
     function(query, subject, maxgap=-1L, minoverlap=0L,
              type=c("any", "start", "end", "within", "equal"),
              select=c("all", "first", "last", "arbitrary"),

@@ -55,17 +55,17 @@
 RectangularVector <- setClass("RectangularVector",
                               contains = c("RectangularData", "Vector"))
 
-.SummarizedExperiment <- new_class("SummarizedExperiment",
+SummarizedExperiment_class <- new_class("SummarizedExperiment",
     parent=RectangularVector,
     properties=list(
         colData=new_property(
-            methods::getClass("DataFrame"),
+            DataFrame_class,
             default=quote(S4Vectors::DataFrame())
         ),
         assays=new_property(.Assays_OR_NULL, default=NULL),
         NAMES=new_property(NULL | class_character, default=NULL),
         elementMetadata=new_property(
-            methods::getClass("DataFrame"),
+            DataFrame_class,
             default=quote(S4Vectors::DataFrame())
         )
     ),
@@ -78,7 +78,7 @@ RectangularVector <- setClass("RectangularVector",
 ### sure to put the new parallel slots **first**. See R/Vector-class.R file
 ### in the S4Vectors package for what slots should or should not be considered
 ### "parallel".
-method(parallel_slot_names, .SummarizedExperiment) <- 
+method(parallel_slot_names, SummarizedExperiment_class) <- 
     function(x) {
         slots <- character()
         if (!is.null(x@assays))
@@ -88,7 +88,7 @@ method(parallel_slot_names, .SummarizedExperiment) <-
         c(slots, callNextMethod())
     }
 
-method(vertical_slot_names, .SummarizedExperiment) <- 
+method(vertical_slot_names, SummarizedExperiment_class) <- 
     function(x) parallel_slot_names(x)
 
 ### Like parallel_slot_names() methods, horizontal_slot_names() methods for
@@ -97,7 +97,7 @@ method(vertical_slot_names, .SummarizedExperiment) <-
 ### slots" (i.e. the horizontal slots that they add to their parent class).
 ### See R/RectangularData-class.R file in the S4Vectors package for what
 ### slots should or should not be considered "horizontal".
-method(horizontal_slot_names, .SummarizedExperiment) <- 
+method(horizontal_slot_names, SummarizedExperiment_class) <- 
     function(x) "colData"
 
 
@@ -105,25 +105,25 @@ method(horizontal_slot_names, .SummarizedExperiment) <-
 ### Accessors
 ###
 
-method(length, .SummarizedExperiment) <-
+method(length, SummarizedExperiment_class) <-
     function(x) nrow(x@elementMetadata)
 
-method(names, .SummarizedExperiment) <- function(x) x@NAMES
+method(names, SummarizedExperiment_class) <- function(x) x@NAMES
 
-method(`names<-`, .SummarizedExperiment) <-
+method(`names<-`, SummarizedExperiment_class) <-
     function(x, value) {
         NAMES <- S4Vectors:::normarg_names(value, class(x)[1L], length(x))
         set_props(x, NAMES=NAMES, .check=FALSE)
     }
 
-method(metadata, .SummarizedExperiment) <- function(x, ...) x@metadata
+method(metadata, SummarizedExperiment_class) <- function(x, ...) x@metadata
 
-method(`metadata<-`, list(.SummarizedExperiment, class_any)) <-
+method(`metadata<-`, list(SummarizedExperiment_class, class_any)) <-
     function(x, ..., value) {
         set_props(x, metadata=as.list(value), .check=FALSE)
     }
 
-method(mcols, .SummarizedExperiment) <-
+method(mcols, SummarizedExperiment_class) <-
     function(x, use.names=TRUE, ...) {
         ans <- x@elementMetadata
         if (use.names)
@@ -131,7 +131,7 @@ method(mcols, .SummarizedExperiment) <-
         ans
     }
 
-method(`mcols<-`, list(.SummarizedExperiment, class_any)) <-
+method(`mcols<-`, list(SummarizedExperiment_class, class_any)) <-
     function(x, ..., value) {
         value <- as(value, "DataFrame")
         n <- length(x)
@@ -152,25 +152,25 @@ rowData <- new_generic("rowData", "x",
 )
 
 ### Fix old DataFrame instances on-the-fly (mcols() does it).
-method(rowData, .SummarizedExperiment) <-
+method(rowData, SummarizedExperiment_class) <-
     function(x, use.names=TRUE, ...) mcols(x, use.names=use.names, ...)
 
 `rowData<-` <- new_generic("rowData<-", "x",
     function(x, ..., value) S7_dispatch())
 
-method(`rowData<-`, .SummarizedExperiment) <-
+method(`rowData<-`, SummarizedExperiment_class) <-
     function(x, ..., value) `mcols<-`(x, ..., value=value)
 
 colData <- new_generic("colData", "x", function(x, ...) S7_dispatch())
 
 ### Fix old DataFrame instances on-the-fly.
-method(colData, .SummarizedExperiment) <-
+method(colData, SummarizedExperiment_class) <-
     function(x, ...) updateObject(x@colData, check=FALSE)
 
 `colData<-` <- new_generic("colData<-", "x",
     function(x, ..., value) S7_dispatch())
 
-method(`colData<-`, .SummarizedExperiment) <- function(x, ..., value) {
+method(`colData<-`, SummarizedExperiment_class) <- function(x, ..., value) {
     if (is.null(value)) {
         value <- new2("DFrame", nrows=ncol(x), rownames=colnames(x),
                       check=FALSE)
@@ -185,11 +185,11 @@ assays <- new_generic("assays", "x",
     function(x, withDimnames=TRUE, ...) S7_dispatch()
 )
 
-method(assays, .SummarizedExperiment) <- 
+method(assays, SummarizedExperiment_class) <- 
     function(x, withDimnames=TRUE, ...) {
     if (!isTRUEorFALSE(withDimnames))
         stop(wmsg("'withDimnames' must be TRUE or FALSE"))
-    assays <- convert(x@assays, methods::getClass("SimpleList"))
+    assays <- convert(x@assays, SimpleList_class)
     if (withDimnames) {
         x_dimnames <- dimnames(x)
         if (is.null(x_dimnames))
@@ -310,7 +310,7 @@ method(assays, .SummarizedExperiment) <-
     x
 }
 
-method(`assays<-`, .SummarizedExperiment) <-
+method(`assays<-`, SummarizedExperiment_class) <-
     .SummarizedExperiment.assays.replace
 
 assay <- new_generic("assay", c("x", "i"),
@@ -318,7 +318,7 @@ assay <- new_generic("assay", c("x", "i"),
 )
 
 ## convenience for common use case
-method(assay, list(.SummarizedExperiment, class_missing)) <- 
+method(assay, list(SummarizedExperiment_class, class_missing)) <- 
     function(x, i, withDimnames=TRUE, ...)
 {
     assays <- assays(x, withDimnames=withDimnames, ...)
@@ -328,7 +328,7 @@ method(assay, list(.SummarizedExperiment, class_missing)) <-
     assays[[1]]
 }
 
-method(assay, list(.SummarizedExperiment, class_numeric)) <- 
+method(assay, list(SummarizedExperiment_class, class_numeric)) <- 
     function(x, i, withDimnames=TRUE, ...)
 {
     tryCatch({
@@ -339,7 +339,7 @@ method(assay, list(.SummarizedExperiment, class_numeric)) <-
     })
 }
 
-method(assay, list(.SummarizedExperiment, class_character)) <- 
+method(assay, list(SummarizedExperiment_class, class_character)) <- 
     function(x, i, withDimnames=TRUE, ...)
 {
     msg <- paste0("'assay(<", class(x), ">, i=\"character\", ...)' ",
@@ -357,7 +357,7 @@ method(assay, list(.SummarizedExperiment, class_character)) <-
 `assay<-` <- new_generic("assay<-", c("x", "i"),
     function(x, i, withDimnames=TRUE, ..., value) S7_dispatch())
 
-method(`assay<-`, list(.SummarizedExperiment, class_missing)) <- 
+method(`assay<-`, list(SummarizedExperiment_class, class_missing)) <- 
     function(x, i, withDimnames=TRUE, ..., value)
 {
     if (0L == length(assays(x, withDimnames=FALSE)))
@@ -367,14 +367,14 @@ method(`assay<-`, list(.SummarizedExperiment, class_missing)) <-
     x
 }
 
-method(`assay<-`, list(.SummarizedExperiment, class_numeric)) <- 
+method(`assay<-`, list(SummarizedExperiment_class, class_numeric)) <- 
     function(x, i, withDimnames=TRUE, ..., value)
 {
     assays(x, withDimnames=withDimnames, ...)[[i]] <- value
     x
 }
 
-method(`assay<-`, list(.SummarizedExperiment, class_character)) <- 
+method(`assay<-`, list(SummarizedExperiment_class, class_character)) <- 
     function(x, i, withDimnames=TRUE, ..., value)
 {
     assays(x, withDimnames=withDimnames, ...)[[i]] <- value
@@ -383,7 +383,7 @@ method(`assay<-`, list(.SummarizedExperiment, class_character)) <-
 
 assayNames <- new_generic("assayNames", "x", function(x, ...) S7_dispatch())
 
-method(assayNames, .SummarizedExperiment) <-
+method(assayNames, SummarizedExperiment_class) <-
     function(x, ...)
 {
     names(assays(x, withDimnames=FALSE))
@@ -392,7 +392,7 @@ method(assayNames, .SummarizedExperiment) <-
 `assayNames<-` <- new_generic("assayNames<-", "x",
     function(x, ..., value) S7_dispatch())
 
-method(`assayNames<-`, .SummarizedExperiment) <-
+method(`assayNames<-`, SummarizedExperiment_class) <-
     function(x, ..., value)
 {
     stopifnot(is.character(value))
@@ -400,14 +400,14 @@ method(`assayNames<-`, .SummarizedExperiment) <-
     x
 }
 
-method(nrow, .SummarizedExperiment) <- function(x) length(x)
-method(ncol, .SummarizedExperiment) <- function(x) nrow(colData(x))
-method(dim, .SummarizedExperiment) <- function(x) c(nrow(x), ncol(x))
+method(nrow, SummarizedExperiment_class) <- function(x) length(x)
+method(ncol, SummarizedExperiment_class) <- function(x) nrow(colData(x))
+method(dim, SummarizedExperiment_class) <- function(x) c(nrow(x), ncol(x))
 
-method(rownames, .SummarizedExperiment) <- function(x) names(x)
-method(colnames, .SummarizedExperiment) <- function(x) rownames(colData(x))
+method(rownames, SummarizedExperiment_class) <- function(x) names(x)
+method(colnames, SummarizedExperiment_class) <- function(x) rownames(colData(x))
 
-method(dimnames, .SummarizedExperiment) <-
+method(dimnames, SummarizedExperiment_class) <-
     function(x) {
         rn <- rownames(x)
         cn <- colnames(x)
@@ -417,7 +417,7 @@ method(dimnames, .SummarizedExperiment) <-
             list(rn, cn)
     }
 
-method(`dimnames<-`, .SummarizedExperiment) <-
+method(`dimnames<-`, SummarizedExperiment_class) <-
     function(x, value)
 {
     if (is.null(value)) {
@@ -451,7 +451,7 @@ new_SummarizedExperiment <- function(assays, names, rowData, colData,
     } else {
         rownames(rowData) <- NULL
     }
-    .SummarizedExperiment(NAMES=names,
+    SummarizedExperiment_class(NAMES=names,
                           elementMetadata=rowData,
                           colData=colData,
                           assays=assays,
@@ -582,7 +582,7 @@ SummarizedExperiment <- function(assays=SimpleList(),
 }
 
 ### TODO: Refactor this to use extractROWS().
-method(`[`, .SummarizedExperiment) <-
+method(`[`, SummarizedExperiment_class) <-
     function(x, i, j, ..., drop=TRUE)
 {
     if (1L != length(drop) || (!missing(drop) && drop))
@@ -656,7 +656,7 @@ method(`[`, .SummarizedExperiment) <-
 }
 
 ### TODO: Refactor this to use replaceROWS().
-method(`[<-`, .SummarizedExperiment) <-
+method(`[<-`, SummarizedExperiment_class) <-
     function(x, i, j, ..., value)
 {
     if (missing(i) && missing(j))
@@ -769,7 +769,7 @@ method(`[<-`, .SummarizedExperiment) <-
     ans
 }
 
-method(subset, .SummarizedExperiment) <- 
+method(subset, SummarizedExperiment_class) <- 
     function(x, subset, select, ...)
 {
     i <- S4Vectors:::evalqForSubset(subset, rowData(x, use.names=FALSE), ...)
@@ -782,14 +782,14 @@ method(subset, .SummarizedExperiment) <-
 ### Quick colData access
 ###
 
-method(`[[`, .SummarizedExperiment) <- 
+method(`[[`, SummarizedExperiment_class) <- 
     function(x, i, j, ...)
 {
     stopifnot(missing(j))
     colData(x)[[i, ...]]
 }
 
-method(`[[<-`, .SummarizedExperiment) <- 
+method(`[[<-`, SummarizedExperiment_class) <- 
     function(x, i, j, ..., value)
 {
     stopifnot(missing(j))
@@ -800,13 +800,13 @@ method(`[[<-`, .SummarizedExperiment) <-
 .DollarNames.SummarizedExperiment <- function(x, pattern = "")
     grep(pattern, names(colData(x)), value=TRUE)
 
-method(`$`, .SummarizedExperiment) <- 
+method(`$`, SummarizedExperiment_class) <- 
     function(x, name)
 {
     colData(x)[[name]]
 }
 
-method(`$<-`, .SummarizedExperiment) <- 
+method(`$<-`, SummarizedExperiment_class) <- 
     function(x, name, value)
 {
     colData(x)[[name]] <- value
@@ -818,7 +818,7 @@ method(`$<-`, .SummarizedExperiment) <-
 ### Show
 ###
 
-method(show, .SummarizedExperiment) <- 
+method(show, SummarizedExperiment_class) <- 
     function(object)
 {
     cat("class:", class(object), "\n")
@@ -853,7 +853,7 @@ method(show, .SummarizedExperiment) <-
     coolcat("colData names(%d): %s\n", names(colData(object)))
 }
 
-method(showAsCell, .SummarizedExperiment) <- 
+method(showAsCell, SummarizedExperiment_class) <- 
     function(object) rep.int("####", NROW(object))
 
 
@@ -862,7 +862,7 @@ method(showAsCell, .SummarizedExperiment) <-
 ###
 
 ### Appropriate for objects with different ranges and same samples.
-method(rbind, .SummarizedExperiment) <- 
+method(rbind, SummarizedExperiment_class) <- 
     function(..., deparse.level=1)
 {
     args <- unname(list(...))
@@ -913,7 +913,7 @@ method(rbind, .SummarizedExperiment) <-
 }
 
 ### Appropriate for objects with same ranges and different samples.
-method(cbind, .SummarizedExperiment) <- 
+method(cbind, SummarizedExperiment_class) <- 
     function(..., deparse.level=1)
 {
     args <- unname(list(...))
@@ -1015,11 +1015,11 @@ method(identicalVals, list(class_factor, class_factor)) <-
 ### Semantically equivalent to identical(as.character(x), as.character(y))
 ### but avoids turning the 2 factor-Rle objects into character vectors so is
 ### more efficient.
-method(identicalVals, list(methods::getClass("Rle"), methods::getClass("Rle"))) <- 
+method(identicalVals, list(Rle_class, Rle_class)) <- 
     function(x, y) identical(runLength(x), runLength(y)) &&
                    identicalVals(runValue(x), runValue(y))
 
-method(identicalVals, list(methods::getClass("IntegerRanges"), methods::getClass("IntegerRanges"))) <- 
+method(identicalVals, list(IntegerRanges_class, IntegerRanges_class)) <- 
     function(x, y) identical(start(x), start(y)) &&
                    identical(width(x), width(y))
 
@@ -1028,7 +1028,7 @@ method(identicalVals, list(methods::getClass("IntegerRanges"), methods::getClass
 ### circular sequence of length 100 so should be considered equal. However
 ### for 'x == y' and the method below, they are not.
 ### TODO: Take circularity of the underlying sequences into account.
-method(identicalVals, list(methods::getClass("GenomicRanges"), methods::getClass("GenomicRanges"))) <- 
+method(identicalVals, list(GenomicRanges_class, GenomicRanges_class)) <- 
     function(x, y)
     {
         ## Trying to merge 'seqinfo(x)' and 'seqinfo(y)' will raise an error
@@ -1047,7 +1047,7 @@ method(identicalVals, list(methods::getClass("GenomicRanges"), methods::getClass
 ### On-disk realization.
 ###
 
-method(realize, .SummarizedExperiment) <- 
+method(realize, SummarizedExperiment_class) <- 
     function(x, BACKEND=getAutoRealizationBackend())
     {
         for (i in seq_along(assays(x))) {
@@ -1068,7 +1068,7 @@ method(realize, .SummarizedExperiment) <-
 ### saveRDS() method
 ###
 
-method(saveRDS, .SummarizedExperiment) <- 
+method(saveRDS, SummarizedExperiment_class) <- 
     function(object, file="", ascii=FALSE, version=NULL,
              compress=TRUE, refhook=NULL)
     {
@@ -1098,6 +1098,5 @@ method(saveRDS, .SummarizedExperiment) <-
 }
 
 
-method(updateObject, .SummarizedExperiment) <- 
+method(updateObject, SummarizedExperiment_class) <- 
     .updateObject_SummarizedExperiment
-

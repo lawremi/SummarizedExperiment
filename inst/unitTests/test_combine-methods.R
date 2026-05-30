@@ -1,4 +1,4 @@
-.SummarizedExperiment <- S7::S7_class(SummarizedExperiment())
+SummarizedExperiment_class <- S7::S7_class(SummarizedExperiment())
 RangedSummarizedExperiment <- S7::S7_class(RangedSummarizedExperiment())
 
 test_combineRows_unnamed <- function() {
@@ -108,7 +108,7 @@ test_combineRows_ranges_named <- function() {
 
     # Returns a vanilla SE.
     out <- combineRows(se, se2, use.names=FALSE)
-    checkTrue(identical(S7::S7_class(out), .SummarizedExperiment))
+    checkTrue(identical(S7::S7_class(out), SummarizedExperiment_class))
     checkIdentical(rownames(out), c(rownames(se), rownames(se2)))
 
     # Returns a GRanges.
@@ -157,7 +157,7 @@ test_combineRows_ranges_unnamed <- function() {
 
     # Returns a vanilla SE.
     out <- combineRows(se, se2, use.names=FALSE)
-    checkTrue(identical(S7::S7_class(out), .SummarizedExperiment))
+    checkTrue(identical(S7::S7_class(out), SummarizedExperiment_class))
     checkIdentical(nrow(out), nrow(se) + nrow(se2))
 
     # Returns a GRanges.
@@ -297,11 +297,11 @@ test_combineCols_ranges_named <- function() {
 
     # Checking that an SE is returned.
     out <- combineCols(se, se2, use.names=FALSE)
-    checkTrue(identical(S7::S7_class(out), .SummarizedExperiment))
+    checkTrue(identical(S7::S7_class(out), SummarizedExperiment_class))
     checkIdentical(rownames(out), rownames(se)) # ignoring other row names when use.names=FALSE.
 
     out <- combineCols(se, se2)
-    checkTrue(identical(S7::S7_class(out), .SummarizedExperiment))
+    checkTrue(identical(S7::S7_class(out), SummarizedExperiment_class))
     checkIdentical(rownames(out), union(rownames(se), rownames(se2))) 
 
     # Checking that an RSE is returned.
@@ -361,7 +361,7 @@ test_combineCols_ranges_unnamed <- function() {
 
     # Checking that an SE is returned.
     out <- combineCols(se, se2, use.names=FALSE)
-    checkTrue(identical(S7::S7_class(out), .SummarizedExperiment))
+    checkTrue(identical(S7::S7_class(out), SummarizedExperiment_class))
     checkIdentical(nrow(out), nrow(se)) 
     checkException(combineCols(se, se2), silent=TRUE)
 

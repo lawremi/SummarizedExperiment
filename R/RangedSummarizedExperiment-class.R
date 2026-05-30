@@ -32,10 +32,10 @@
 ### (this is checked by the validity method). The top-level mcols are stored on
 ### the rowRanges component.
 RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
-    parent=.SummarizedExperiment,
+    parent=SummarizedExperiment_class,
     properties=list(
         rowRanges=new_property(
-            methods::getClass("GenomicRanges_OR_GRangesList"),
+            GenomicRanges_OR_GRangesList_class,
             default=quote(GenomicRanges::GRanges())
         )
     ),
@@ -85,7 +85,7 @@ new_RangedSummarizedExperiment <- function(assays, rowRanges, colData,
                              from@metadata)
 }
 
-method(convert, list(RangedSummarizedExperiment, .SummarizedExperiment)) <- function(from, to) {
+method(convert, list(RangedSummarizedExperiment, SummarizedExperiment_class)) <- function(from, to) {
     .from_RangedSummarizedExperiment_to_SummarizedExperiment(from)
 }
 
@@ -100,7 +100,7 @@ method(convert, list(RangedSummarizedExperiment, .SummarizedExperiment)) <- func
                                    from@metadata)
 }
 
-method(convert, list(.SummarizedExperiment, RangedSummarizedExperiment)) <- function(from, to) {
+method(convert, list(SummarizedExperiment_class, RangedSummarizedExperiment)) <- function(from, to) {
     .from_SummarizedExperiment_to_RangedSummarizedExperiment(from)
 }
 
@@ -111,7 +111,7 @@ method(convert, list(.SummarizedExperiment, RangedSummarizedExperiment)) <- func
 ###
 
 ### The rowRanges() generic is defined in the MatrixGenerics package.
-method(rowRanges, .SummarizedExperiment) <- 
+method(rowRanges, SummarizedExperiment_class) <- 
     function(x, ...) NULL
 
 ### Fix old GRanges instances on-the-fly.
@@ -126,7 +126,7 @@ method(rowRanges, RangedSummarizedExperiment) <-
 {
     if (inherits(x, RangedSummarizedExperiment)) {
         if (is.null(value)) {
-            return(convert(x, .SummarizedExperiment))
+            return(convert(x, SummarizedExperiment_class))
         }
         x <- updateObject(x, check=FALSE)
     } else {
@@ -145,10 +145,10 @@ method(rowRanges, RangedSummarizedExperiment) <-
     x
 }
 
-method(`rowRanges<-`, .SummarizedExperiment) <-
+method(`rowRanges<-`, SummarizedExperiment_class) <-
     .SummarizedExperiment.rowRanges.replace
 
-method(`rowRanges<-`, .SummarizedExperiment) <-
+method(`rowRanges<-`, SummarizedExperiment_class) <-
     .SummarizedExperiment.rowRanges.replace
 
 method(names, RangedSummarizedExperiment) <-
@@ -443,4 +443,3 @@ method(split, list(RangedSummarizedExperiment, class_any, class_any)) <-
 
 method(updateObject, RangedSummarizedExperiment) <- 
     .updateObject_RangedSummarizedExperiment
-

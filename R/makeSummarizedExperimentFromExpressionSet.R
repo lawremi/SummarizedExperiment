@@ -1,8 +1,6 @@
 ##
 ## makeSummarizedExperimentFromExpressionSet
 
-.ExpressionSet_class <- methods::getClass("ExpressionSet")
-
 ## coercion
 
 .from_rowRanges_to_FeatureData <- function(from)
@@ -206,15 +204,15 @@ makeSummarizedExperimentFromExpressionSet <-
     )
 }
 
-method(convert, list(.ExpressionSet_class, RangedSummarizedExperiment)) <- function(from, to) {
+method(convert, list(ExpressionSet_class, RangedSummarizedExperiment)) <- function(from, to) {
     makeSummarizedExperimentFromExpressionSet(from)
 }
 
-method(convert, list(.ExpressionSet_class, .SummarizedExperiment)) <- function(from, to) {
-    convert(makeSummarizedExperimentFromExpressionSet(from), .SummarizedExperiment)
+method(convert, list(ExpressionSet_class, SummarizedExperiment_class)) <- function(from, to) {
+    convert(makeSummarizedExperimentFromExpressionSet(from), SummarizedExperiment_class)
 }
 
-method(convert, list(RangedSummarizedExperiment, .ExpressionSet_class)) <- function(from, to) {
+method(convert, list(RangedSummarizedExperiment, ExpressionSet_class)) <- function(from, to) {
     assayData <- list2env(as.list(assays(from)))
 
     numAssays <- length(assayData)
@@ -264,8 +262,8 @@ method(convert, list(RangedSummarizedExperiment, .ExpressionSet_class)) <- funct
                   )
 }
 
-method(convert, list(.SummarizedExperiment, .ExpressionSet_class)) <- function(from, to) {
-    convert(convert(from, RangedSummarizedExperiment), .ExpressionSet_class)
+method(convert, list(SummarizedExperiment_class, ExpressionSet_class)) <- function(from, to) {
+    convert(convert(from, RangedSummarizedExperiment), ExpressionSet_class)
 }
 
 setAs("ExpressionSet", "SummarizedExperiment::RangedSummarizedExperiment", function(from) {
@@ -273,13 +271,13 @@ setAs("ExpressionSet", "SummarizedExperiment::RangedSummarizedExperiment", funct
 })
 
 setAs("ExpressionSet", "SummarizedExperiment::SummarizedExperiment", function(from) {
-    convert(from, .SummarizedExperiment)
+    convert(from, SummarizedExperiment_class)
 })
 
 setAs("SummarizedExperiment::RangedSummarizedExperiment", "ExpressionSet", function(from) {
-    convert(from, .ExpressionSet_class)
+    convert(from, ExpressionSet_class)
 })
 
 setAs("SummarizedExperiment::SummarizedExperiment", "ExpressionSet", function(from) {
-    convert(from, .ExpressionSet_class)
+    convert(from, ExpressionSet_class)
 })

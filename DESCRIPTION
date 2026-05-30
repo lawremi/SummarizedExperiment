@@ -27,7 +27,9 @@ Suggests: GenomeInfoDb (>= 1.45.5), rhdf5, HDF5Array (>= 1.7.5), annotate,
 	TxDb.Hsapiens.UCSC.hg19.knownGene, hgu95av2.db, airway (>= 1.15.1),
 	BiocStyle, knitr, rmarkdown, RUnit, testthat, digest
 VignetteBuilder: knitr
-Collate: Assays-class.R
+Collate: 
+    aliases.R
+	Assays-class.R
 	SummarizedExperiment-class.R
 	RangedSummarizedExperiment-class.R
 	intra-range-methods.R
@@ -39,4 +41,5 @@ Collate: Assays-class.R
 	makeSummarizedExperimentFromExpressionSet.R
 	makeSummarizedExperimentFromDataFrame.R
 	makeSummarizedExperimentFromLoom.R
+	zcompat.R
 	zzz.R

@@ -3,13 +3,13 @@
 ### TODO: complete this list
 
 methods::setAs("SummarizedExperiment::Assays", "SimpleList", function(from) {
-    convert(from, methods::getClass("SimpleList"))
+    convert(from, SimpleList_class)
 })
 
 methods::setAs("SummarizedExperiment::SimpleAssays", "SimpleList", function(from) {
-    convert(from, methods::getClass("SimpleList"))
+    convert(from, SimpleList_class)
 })
 
 methods::setAs("SummarizedExperiment::AssaysInEnv", "SimpleList", function(from) {
-    convert(from, methods::getClass("SimpleList"))
+    convert(from, SimpleList_class)
 })
