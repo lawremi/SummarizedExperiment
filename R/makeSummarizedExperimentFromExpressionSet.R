@@ -266,18 +266,3 @@ method(convert, list(SummarizedExperiment_class, ExpressionSet_class)) <- functi
     convert(convert(from, RangedSummarizedExperiment), ExpressionSet_class)
 }
 
-setAs("ExpressionSet", "SummarizedExperiment::RangedSummarizedExperiment", function(from) {
-    convert(from, RangedSummarizedExperiment)
-})
-
-setAs("ExpressionSet", "SummarizedExperiment::SummarizedExperiment", function(from) {
-    convert(from, SummarizedExperiment_class)
-})
-
-setAs("SummarizedExperiment::RangedSummarizedExperiment", "ExpressionSet", function(from) {
-    convert(from, ExpressionSet_class)
-})
-
-setAs("SummarizedExperiment::SummarizedExperiment", "ExpressionSet", function(from) {
-    convert(from, ExpressionSet_class)
-})
