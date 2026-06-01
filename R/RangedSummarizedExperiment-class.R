@@ -42,7 +42,7 @@ RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
     validator=function(self) .valid.RangedSummarizedExperiment(self)
 )
 
-
+setShim(RangedSummarizedExperiment)
 
 ### Combine the new "parallel slots" with those of the parent class. Make
 ### sure to put the new parallel slots **first**. See R/Vector-class.R file

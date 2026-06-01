@@ -28,7 +28,7 @@ Suggests: GenomeInfoDb (>= 1.45.5), rhdf5, HDF5Array (>= 1.7.5), annotate,
 	BiocStyle, knitr, rmarkdown, RUnit, testthat, digest
 VignetteBuilder: knitr
 Collate: 
-    aliases.R
+    acompat.R
 	Assays-class.R
 	SummarizedExperiment-class.R
 	RangedSummarizedExperiment-class.R

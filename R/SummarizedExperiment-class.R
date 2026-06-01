@@ -5,7 +5,7 @@
 
 
 .Assays_OR_NULL <- new_union(.Assays, NULL)
-
+S4_register(.Assays_OR_NULL)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Validity
@@ -72,7 +72,7 @@ SummarizedExperiment_class <- new_class("SummarizedExperiment",
     validator=function(self) .valid.SummarizedExperiment(self)
 )
 
-
+setShim(SummarizedExperiment_class)
 
 ### Combine the new "parallel slots" with those of the parent class. Make
 ### sure to put the new parallel slots **first**. See R/Vector-class.R file

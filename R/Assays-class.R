@@ -81,6 +81,8 @@
     validator=function(self) .valid.Assays(self)
 )
 
+setShim(.Assays)
+
 ### Constructor
 
 ### Always return a SimpleList object by default. Will return a NULL only
@@ -339,6 +341,8 @@ SimpleAssays <- new_class("SimpleAssays",
         data=SimpleList_class
     )
 )
+
+setShim(SimpleAssays)
 
 ### We only need to implement the REQUIRED coercions.
 
