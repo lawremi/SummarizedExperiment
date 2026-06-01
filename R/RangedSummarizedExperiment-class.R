@@ -148,9 +148,6 @@ method(rowRanges, RangedSummarizedExperiment) <-
 method(`rowRanges<-`, SummarizedExperiment_class) <-
     .SummarizedExperiment.rowRanges.replace
 
-method(`rowRanges<-`, SummarizedExperiment_class) <-
-    .SummarizedExperiment.rowRanges.replace
-
 method(names, RangedSummarizedExperiment) <-
     function(x) names(rowRanges(x))
 
