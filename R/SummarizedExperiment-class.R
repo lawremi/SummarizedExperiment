@@ -85,7 +85,7 @@ method(parallel_slot_names, SummarizedExperiment_class) <-
             slots <- c(slots, "assays")
         if (!is.null(x@NAMES))
             slots <- c(slots, "NAMES")
-        c(slots, parallel_slot_names(super(x, RectangularVector)))
+        c(slots, callNextMethod())
     }
 
 method(vertical_slot_names, SummarizedExperiment_class) <- 
@@ -1082,7 +1082,7 @@ method(saveRDS, SummarizedExperiment_class) <-
                 "\n  ",
                  wmsg("See '?containsOutOfMemoryData' in the BiocGenerics ",
                       "package for more information."))
-        invisible(saveRDS(super(object, RectangularVector)))
+        invisible(callNextMethod())
     }
 
 
@@ -1094,7 +1094,7 @@ method(saveRDS, SummarizedExperiment_class) <-
 {
     object@assays <- updateObject(object@assays, ..., verbose=verbose)
     object@colData <- updateObject(object@colData, ..., verbose=verbose)
-    updateObject(super(object, RectangularVector))
+    callNextMethod()
 }
 
 

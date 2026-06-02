@@ -50,8 +50,7 @@ setShim(RangedSummarizedExperiment)
 ### "parallel".
 method(parallel_slot_names, RangedSummarizedExperiment) <-
     function(x) {
-        c("rowRanges",
-          parallel_slot_names(super(x, SummarizedExperiment_class)))
+        c("rowRanges", callNextMethod())
     }
 
 
@@ -436,7 +435,7 @@ method(split, list(RangedSummarizedExperiment, class_any, class_any)) <-
 
 .updateObject_RangedSummarizedExperiment <- function(object, ..., verbose=FALSE)
 {
-    object <- updateObject(super(object, SummarizedExperiment_class))
+    object <- callNextMethod()
     object@rowRanges <- updateObject(object@rowRanges, ..., verbose=verbose)
     object
 }
