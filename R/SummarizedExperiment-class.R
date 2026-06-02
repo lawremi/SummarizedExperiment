@@ -85,7 +85,7 @@ method(parallel_slot_names, SummarizedExperiment_class) <-
             slots <- c(slots, "assays")
         if (!is.null(x@NAMES))
             slots <- c(slots, "NAMES")
-        c(slots, callNextMethod())
+        c(slots, parallel_slot_names(super(x, RectangularVector)))
     }
 
 method(vertical_slot_names, SummarizedExperiment_class) <- 
@@ -897,8 +897,8 @@ method(rbind, SummarizedExperiment_class) <-
         }
     }
     colData <- .cbind.DataFrame(args, colData, "colData")
-    assays <- do.call(rbind, lapply(args, slot, "assays"))
-    elementMetadata <- do.call(rbind, lapply(args, slot, "elementMetadata"))
+    assays <- do.call(rbind, lapply(args, prop, "assays"))
+    elementMetadata <- do.call(rbind, lapply(args, prop, "elementMetadata"))
     metadata <- do.call(c, lapply(args, metadata))
 
     if (inherits(args[[1L]], "SummarizedExperiment::RangedSummarizedExperiment")) {
@@ -931,7 +931,7 @@ method(cbind, SummarizedExperiment_class) <-
         elementMetadata <- .cbind.DataFrame(args, mcols, "mcols")
     }
     colData <- do.call(rbind, lapply(args, colData))
-    assays <- do.call(cbind, lapply(args, slot, "assays"))
+    assays <- do.call(cbind, lapply(args, prop, "assays"))
     metadata <- do.call(c, lapply(args, metadata))
 
     if (inherits(args[[1L]], "SummarizedExperiment::RangedSummarizedExperiment")) {
@@ -1082,7 +1082,7 @@ method(saveRDS, SummarizedExperiment_class) <-
                 "\n  ",
                  wmsg("See '?containsOutOfMemoryData' in the BiocGenerics ",
                       "package for more information."))
-        invisible(callNextMethod())
+        invisible(saveRDS(super(object, RectangularVector)))
     }
 
 
@@ -1094,7 +1094,7 @@ method(saveRDS, SummarizedExperiment_class) <-
 {
     object@assays <- updateObject(object@assays, ..., verbose=verbose)
     object@colData <- updateObject(object@colData, ..., verbose=verbose)
-    callNextMethod()  # call method for Vector objects
+    updateObject(super(object, RectangularVector))
 }
 
 

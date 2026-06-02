@@ -48,8 +48,11 @@ setShim(RangedSummarizedExperiment)
 ### sure to put the new parallel slots **first**. See R/Vector-class.R file
 ### in the S4Vectors package for what slots should or should not be considered
 ### "parallel".
-method(parallel_slot_names, RangedSummarizedExperiment) <- 
-    function(x) c("rowRanges", callNextMethod())
+method(parallel_slot_names, RangedSummarizedExperiment) <-
+    function(x) {
+        c("rowRanges",
+          parallel_slot_names(super(x, SummarizedExperiment_class)))
+    }
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -433,7 +436,7 @@ method(split, list(RangedSummarizedExperiment, class_any, class_any)) <-
 
 .updateObject_RangedSummarizedExperiment <- function(object, ..., verbose=FALSE)
 {
-    object <- callNextMethod()  # call method for SummarizedExperiment objects
+    object <- updateObject(super(object, SummarizedExperiment_class))
     object@rowRanges <- updateObject(object@rowRanges, ..., verbose=verbose)
     object
 }

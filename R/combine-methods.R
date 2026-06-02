@@ -138,7 +138,7 @@ combine_assays_by <- function(all.se, mappings, delayed, fill, by.row) {
     } else {
         combined <- do.call(cbind, all.assays)
     }
-    as(combined, "SimpleList")
+    convert(combined, SimpleList_class)
 }
 
 create_dummy_matrix <- function(nr, nc, delayed, fill) {

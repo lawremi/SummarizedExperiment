@@ -142,8 +142,8 @@ Assays <- function(assays=SimpleList(), as.null.if.no.assay=FALSE)
     ## object. Note that there are probably hundreds (if not thousands) of
     ## serialized SummarizedExperiment objects around that use
     ## ShallowSimpleListAssays. These objects should keep working as before!
-    if (!is(assays, "SimpleAssays")) {
-        if (is(assays, "Assays")) {
+    if (!inherits(assays, SimpleAssays)) {
+        if (inherits(assays, .Assays)) {
             ## Will turn any Assays derivative (e.g. ShallowSimpleListAssays)
             ## into a SimpleAssays object.
             assays <- convert(convert(assays, SimpleList_class), SimpleAssays)
