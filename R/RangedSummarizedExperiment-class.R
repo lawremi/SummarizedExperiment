@@ -32,13 +32,31 @@
 ### (this is checked by the validity method). The top-level mcols are stored on
 ### the rowRanges component.
 RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
-    parent=SummarizedExperiment_class,
+    parent=SummarizedExperiment,
     properties=list(
         rowRanges=new_property(
             GenomicRanges_OR_GRangesList_class,
             default=quote(GenomicRanges::GRanges())
         )
     ),
+    constructor=function(rowRanges=GenomicRanges::GRanges(),
+                         colData=S4Vectors::DataFrame(),
+                         assays=SimpleList(),
+                         elementMetadata=S4Vectors:::make_zero_col_DataFrame(length(rowRanges)),
+                         NAMES=NULL,
+                         metadata=list()) {
+        if (FALSE)
+            new_object()
+        assays <- Assays(assays, as.null.if.no.assay=FALSE)
+        ans <- new2("RangedSummarizedExperiment", check=FALSE)
+        methods::slot(ans, "rowRanges") <- rowRanges
+        methods::slot(ans, "colData") <- colData
+        methods::slot(ans, "assays") <- assays
+        methods::slot(ans, "elementMetadata") <- elementMetadata
+        methods::slot(ans, "NAMES") <- if (is.null(NAMES)) character(0) else NAMES
+        methods::slot(ans, "metadata") <- as.list(metadata)
+        ans
+    },
     validator=function(self) .valid.RangedSummarizedExperiment(self)
 )
 
@@ -61,13 +79,16 @@ method(parallel_slot_names, RangedSummarizedExperiment) <-
 new_RangedSummarizedExperiment <- function(assays, rowRanges, colData,
                                             metadata)
 {
-    assays <- Assays(assays, as.null.if.no.assay=TRUE)
+    assays <- Assays(assays, as.null.if.no.assay=FALSE)
     elementMetadata <- S4Vectors:::make_zero_col_DataFrame(length(rowRanges))
-    RangedSummarizedExperiment(rowRanges=rowRanges,
-                               colData=colData,
-                               assays=assays,
-                               elementMetadata=elementMetadata,
-                               metadata=as.list(metadata))
+    ans <- new2("RangedSummarizedExperiment", check=FALSE)
+    methods::slot(ans, "rowRanges") <- rowRanges
+    methods::slot(ans, "colData") <- colData
+    methods::slot(ans, "assays") <- assays
+    methods::slot(ans, "elementMetadata") <- elementMetadata
+    methods::slot(ans, "NAMES") <- character(0)
+    methods::slot(ans, "metadata") <- as.list(metadata)
+    ans
 }
 
 
@@ -87,7 +108,7 @@ new_RangedSummarizedExperiment <- function(assays, rowRanges, colData,
                              from@metadata)
 }
 
-method(convert, list(RangedSummarizedExperiment, SummarizedExperiment_class)) <- function(from, to) {
+method(convert, list(RangedSummarizedExperiment, SummarizedExperiment)) <- function(from, to) {
     .from_RangedSummarizedExperiment_to_SummarizedExperiment(from)
 }
 
@@ -102,7 +123,7 @@ method(convert, list(RangedSummarizedExperiment, SummarizedExperiment_class)) <-
                                    from@metadata)
 }
 
-method(convert, list(SummarizedExperiment_class, RangedSummarizedExperiment)) <- function(from, to) {
+method(convert, list(SummarizedExperiment, RangedSummarizedExperiment)) <- function(from, to) {
     .from_SummarizedExperiment_to_RangedSummarizedExperiment(from)
 }
 
@@ -113,7 +134,7 @@ method(convert, list(SummarizedExperiment_class, RangedSummarizedExperiment)) <-
 ###
 
 ### The rowRanges() generic is defined in the MatrixGenerics package.
-method(rowRanges, SummarizedExperiment_class) <- 
+method(rowRanges, SummarizedExperiment) <- 
     function(x, ...) NULL
 
 ### Fix old GRanges instances on-the-fly.
@@ -128,7 +149,7 @@ method(rowRanges, RangedSummarizedExperiment) <-
 {
     if (inherits(x, RangedSummarizedExperiment)) {
         if (is.null(value)) {
-            return(convert(x, SummarizedExperiment_class))
+            return(convert(x, SummarizedExperiment))
         }
         x <- updateObject(x, check=FALSE)
     } else {
@@ -147,7 +168,7 @@ method(rowRanges, RangedSummarizedExperiment) <-
     x
 }
 
-method(`rowRanges<-`, SummarizedExperiment_class) <-
+method(`rowRanges<-`, SummarizedExperiment) <-
     .SummarizedExperiment.rowRanges.replace
 
 method(names, RangedSummarizedExperiment) <-

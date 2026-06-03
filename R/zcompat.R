@@ -21,7 +21,7 @@ methods::setAs("SimpleList", "SummarizedExperiment::AssaysInEnv", function(from)
 })
 
 methods::setAs("RangedSummarizedExperiment", "SummarizedExperiment", function(from) {
-    convert(from, SummarizedExperiment_class)
+    convert(from, SummarizedExperiment)
 })  
 
 methods::setAs("SummarizedExperiment", "RangedSummarizedExperiment", function(from) {
@@ -33,7 +33,7 @@ methods::setAs("ExpressionSet", "RangedSummarizedExperiment", function(from) {
 })
 
 methods::setAs("ExpressionSet", "SummarizedExperiment", function(from) {
-    convert(from, SummarizedExperiment_class)
+    convert(from, SummarizedExperiment)
 })
 
 methods::setAs("RangedSummarizedExperiment", "ExpressionSet", function(from) {

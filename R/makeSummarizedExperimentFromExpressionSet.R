@@ -208,8 +208,8 @@ method(convert, list(ExpressionSet_class, RangedSummarizedExperiment)) <- functi
     makeSummarizedExperimentFromExpressionSet(from)
 }
 
-method(convert, list(ExpressionSet_class, SummarizedExperiment_class)) <- function(from, to) {
-    convert(makeSummarizedExperimentFromExpressionSet(from), SummarizedExperiment_class)
+method(convert, list(ExpressionSet_class, SummarizedExperiment)) <- function(from, to) {
+    convert(makeSummarizedExperimentFromExpressionSet(from), SummarizedExperiment)
 }
 
 method(convert, list(RangedSummarizedExperiment, ExpressionSet_class)) <- function(from, to) {
@@ -262,7 +262,7 @@ method(convert, list(RangedSummarizedExperiment, ExpressionSet_class)) <- functi
                   )
 }
 
-method(convert, list(SummarizedExperiment_class, ExpressionSet_class)) <- function(from, to) {
+method(convert, list(SummarizedExperiment, ExpressionSet_class)) <- function(from, to) {
     convert(convert(from, RangedSummarizedExperiment), ExpressionSet_class)
 }
 
