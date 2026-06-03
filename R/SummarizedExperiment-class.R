@@ -473,13 +473,12 @@ new_SummarizedExperiment <- function(assays, names, rowData, colData,
     } else {
         rownames(rowData) <- NULL
     }
-    ans <- new2("SummarizedExperiment", check=FALSE)
-    methods::slot(ans, "NAMES") <- if (is.null(names)) character(0) else names
-    methods::slot(ans, "elementMetadata") <- rowData
-    methods::slot(ans, "colData") <- colData
-    methods::slot(ans, "assays") <- assays
-    methods::slot(ans, "metadata") <- as.list(metadata)
-    ans
+    methods::new("SummarizedExperiment",
+                 NAMES=names,
+                 elementMetadata=rowData,
+                 colData=colData,
+                 assays=assays,
+                 metadata=as.list(metadata))
 }
 
 

@@ -42,20 +42,10 @@ RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
     constructor=function(rowRanges=GenomicRanges::GRanges(),
                          colData=S4Vectors::DataFrame(),
                          assays=SimpleList(),
-                         elementMetadata=S4Vectors:::make_zero_col_DataFrame(length(rowRanges)),
-                         NAMES=NULL,
                          metadata=list()) {
         if (FALSE)
             new_object()
-        assays <- Assays(assays, as.null.if.no.assay=FALSE)
-        ans <- new2("RangedSummarizedExperiment", check=FALSE)
-        methods::slot(ans, "rowRanges") <- rowRanges
-        methods::slot(ans, "colData") <- colData
-        methods::slot(ans, "assays") <- assays
-        methods::slot(ans, "elementMetadata") <- elementMetadata
-        methods::slot(ans, "NAMES") <- if (is.null(NAMES)) character(0) else NAMES
-        methods::slot(ans, "metadata") <- as.list(metadata)
-        ans
+        new_RangedSummarizedExperiment(assays, rowRanges, colData, metadata)
     },
     validator=function(self) .valid.RangedSummarizedExperiment(self)
 )
@@ -81,14 +71,13 @@ new_RangedSummarizedExperiment <- function(assays, rowRanges, colData,
 {
     assays <- Assays(assays, as.null.if.no.assay=FALSE)
     elementMetadata <- S4Vectors:::make_zero_col_DataFrame(length(rowRanges))
-    ans <- new2("RangedSummarizedExperiment", check=FALSE)
-    methods::slot(ans, "rowRanges") <- rowRanges
-    methods::slot(ans, "colData") <- colData
-    methods::slot(ans, "assays") <- assays
-    methods::slot(ans, "elementMetadata") <- elementMetadata
-    methods::slot(ans, "NAMES") <- character(0)
-    methods::slot(ans, "metadata") <- as.list(metadata)
-    ans
+    methods::new("RangedSummarizedExperiment",
+                 rowRanges=rowRanges,
+                 colData=colData,
+                 assays=assays,
+                 elementMetadata=elementMetadata,
+                 NAMES=NULL,
+                 metadata=as.list(metadata))
 }
 
 

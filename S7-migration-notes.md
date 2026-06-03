@@ -1,15 +1,14 @@
 # S7 migration notes
 
-Deferred while focusing on S4/S7 initialization:
+Constructor/class-object cleanup:
 
-- Constructors should eventually create instances through the S4 shim classes so
-  existing `as()` methods and downstream S4 code see `SummarizedExperiment` and
+- Constructors create instances through the S4 shim classes so existing `as()`
+  methods and downstream S4 code see `SummarizedExperiment` and
   `RangedSummarizedExperiment` S4 instances.
-- Get away from having _class objects. Each S7 class should be represented by a 
-  class object of the same name as the class. This means having the current functions
-  with those names becoming constructors on the S7 class. Even though they will actually
-  create the S4 shims mentioned above, they should work, as long as we have a dummy call
-  to new_object() somewhere in the constructor.
+- The exported class objects now have the same names as their classes:
+  `SummarizedExperiment` and `RangedSummarizedExperiment`. The old high-level
+  `SummarizedExperiment()` function is now `.SummarizedExperiment()` behind the
+  S7 class constructor.
 
 Current constructor compromises:
 
@@ -19,17 +18,15 @@ Current constructor compromises:
   `.SummarizedExperiment()` helper. The custom constructors include a dead
   `new_object()` call to satisfy S7's constructor checks even though the live path
   creates S4 shim instances.
-- The low-level constructors allocate with `new2(..., check=FALSE)` and then set
-  S4 slots directly with `methods::slot<-`. This is intentionally more manual than
-  the original S4 constructor path. Calling `methods::new()` with slot arguments
-  caused S4 validity/S7 property validation to run while the object was still in a
-  partially initialized S4/S7 state.
-- Nullable S4 slots are not smooth yet. S4 represents `NULL` in slots with an
-  internal sentinel, and S7 property access currently sees that sentinel as a
-  symbol rather than as `NULL`. To avoid exposing that through properties,
-  constructors store a non-NULL empty value when possible: empty assays use
-  `Assays(..., as.null.if.no.assay=FALSE)`, and absent `NAMES` are stored as
-  `character(0)` with `names()` translating that back to `NULL`.
+- The low-level constructors should allocate through `methods::new()` with slot
+  arguments. If that fails while the S4/S7 bridge is incomplete, the fix belongs
+  in S7 or methods rather than in package-local post-construction slot setting.
+- Nullable S4 slots depend on S7 using the same internal sentinel as S4 for
+  stored `NULL` values. With that in place, absent `NAMES` can be stored as
+  `NULL` again and still read correctly through both S4 slot access and S7
+  property access. Empty assays still use
+  `Assays(..., as.null.if.no.assay=FALSE)` so the `assays` slot remains a
+  concrete `Assays` object.
 - The high-level constructor must preserve whether `colData` was supplied. The
   S7 constructor wrapper therefore forwards `colData` only when it was not
   missing; otherwise the old constructor logic can still infer `colData` from the
@@ -38,7 +35,19 @@ Current constructor compromises:
   constructed object. In the ranged case, that routed through the half-migrated
   S4/S7 dispatch stack and could recurse until the C stack overflowed. The check
   instead compares assays against the dimnames known from constructor inputs.
-- Direct slot setting means this path bypasses ordinary property setters and
-  relies on the values being normalized before assignment. Full validity remains
-  something to revisit once nullable S4 slots and ranged `dim()`/`dimnames()`
-  dispatch are less fragile.
+- `RectangularData` belongs in the S7 inheritance chain, through the
+  `RectangularVector` parent bridge, not on the exported S4 shim. The S7 old
+  class should remain a virtual inheritance/dispatch marker, while the
+  `::S4Slots` shim carries S7 properties as slots for S4 subclasses.
+- Slot prototypes for values like `colData`, `assays`, `NAMES`, and `rowRanges`
+  are an S7 registration responsibility on the `::S4Slots` shim. The S4 shim
+  classes should not need package-local prototype patches for
+  `methods::new("SummarizedExperiment")` or
+  `methods::new("RangedSummarizedExperiment")`.
+- Open S7/methods issue: `validObject()` recursively validates S4 superclasses
+  by coercing to those superclass slices. With `RectangularData` in the S7/S4
+  parent chain, that currently means validation reaches a stripped
+  `RectangularVector` object that no longer has `assays` or `colData`, so
+  inherited `RectangularData` validity cannot compute `dim(x)`.
+- Full constructor validity remains something to revisit once the S4/S7
+  construction boundary settles.
