@@ -335,14 +335,30 @@ setMethod("acbind", "Matrix", function(...) cbind(...))
 
 ### SimpleAssays cannot contain SimpleList because of the conflicting
 ### semantic of [.
+SimpleAssays_constructor <- function(data=SimpleList(), .s4=TRUE)
+{
+    object <- new_object(S7_object(), data=data)
+    if (.s4)
+        new_SimpleAssays(object)
+    else
+        object
+}
+
 SimpleAssays <- new_class("SimpleAssays",
     parent=.Assays,
     properties=list(
         data=SimpleList_class
-    )
+    ),
+    constructor=SimpleAssays_constructor
 )
 
-setShim(SimpleAssays)
+SimpleAssays_S4Slots <- setShim(SimpleAssays)
+
+new_SimpleAssays <- function(object)
+{
+    methods::new("SimpleAssays",
+                 methods::new(SimpleAssays_S4Slots, object))
+}
 
 ### We only need to implement the REQUIRED coercions.
 
@@ -392,12 +408,30 @@ setAs("ShallowSimpleListAssays", "SimpleList", function(from) from$data)
 ### names<-, getListElement, and setListElement.
 ###
 
+AssaysInEnv_constructor <- function(envir, .s4=TRUE)
+{
+    object <- new_object(S7_object(), envir=envir)
+    if (.s4)
+        new_AssaysInEnv(object)
+    else
+        object
+}
+
 AssaysInEnv <- new_class("AssaysInEnv",
     parent=.Assays,
     properties=list(
         envir=class_environment
-    )
+    ),
+    constructor=AssaysInEnv_constructor
 )
+
+AssaysInEnv_S4Slots <- setShim(AssaysInEnv)
+
+new_AssaysInEnv <- function(object)
+{
+    methods::new("AssaysInEnv",
+                 methods::new(AssaysInEnv_S4Slots, object))
+}
 
 .NAMES_SYMBOL <- ".names"  # must begin with a . so is ommitted by ls() 
 
