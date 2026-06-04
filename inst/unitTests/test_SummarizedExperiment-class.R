@@ -21,10 +21,10 @@ test_SummarizedExperiment_construction <- function()
 {
     ## empty-ish
     m1 <- matrix(0, 0, 0)
-    checkTrue(inherits(S7::validate(SummarizedExperiment()), SummarizedExperiment_class))
-    checkTrue(inherits(S7::validate(SummarizedExperiment()), SummarizedExperiment_class), "empty constructor")
-    checkTrue(inherits(S7::validate(SummarizedExperiment(SimpleList())), SummarizedExperiment_class))
-    checkTrue(inherits(S7::validate(SummarizedExperiment(assays=SimpleList(m1))), SummarizedExperiment_class),
+    checkTrue(inherits(S7::validate(SummarizedExperiment()), SummarizedExperiment))
+    checkTrue(inherits(S7::validate(SummarizedExperiment()), SummarizedExperiment), "empty constructor")
+    checkTrue(inherits(S7::validate(SummarizedExperiment(SimpleList())), SummarizedExperiment))
+    checkTrue(inherits(S7::validate(SummarizedExperiment(assays=SimpleList(m1))), SummarizedExperiment),
               "0x0 constructor")
     checkException(SummarizedExperiment(assays=SimpleList(m1, matrix())),
                    "assays dim mismatch", TRUE)
@@ -32,7 +32,7 @@ test_SummarizedExperiment_construction <- function()
     ## substance
     for (i in seq_along(se0List)) {
         se0 <- se0List[[i]]
-        checkTrue(inherits(S7::validate(se0), SummarizedExperiment_class))
+        checkTrue(inherits(S7::validate(se0), SummarizedExperiment))
         checkIdentical(SimpleList(m=mList[[i]]), assays(se0))
         checkIdentical(rowDataList[[i]], rowData(se0))
         checkIdentical(colData0, colData(se0))
@@ -41,18 +41,18 @@ test_SummarizedExperiment_construction <- function()
     ## array in assays slot
     ss <- se0List[[1]]
     assays(ss, withDimnames=FALSE) <- SimpleList(array(1:5, c(5,3,2)))
-    checkTrue(inherits(S7::validate(ss), SummarizedExperiment_class))
+    checkTrue(inherits(S7::validate(ss), SummarizedExperiment))
     checkTrue(all(dim(assays(ss[1:3,1:2])[[1]]) == c(3, 2, 2)))
 
     ## matrix-of-list in assay slot
     m <- matrix(list(), 2, 3, dimnames=list(LETTERS[1:2], letters[1:3]))
-    checkTrue(inherits(S7::validate(se <- SummarizedExperiment(m)), SummarizedExperiment_class))
+    checkTrue(inherits(S7::validate(se <- SummarizedExperiment(m)), SummarizedExperiment))
     checkIdentical(m, assay(se))
     checkIdentical(m[,1:2], assay(se[,1:2]))
 
     ## DataFrame in assay slot
     df <- DataFrame(a=1:3, b=1:3, row.names=LETTERS[1:3])
-    checkTrue(inherits(S7::validate(SummarizedExperiment(list(df))), SummarizedExperiment_class))
+    checkTrue(inherits(S7::validate(SummarizedExperiment(list(df))), SummarizedExperiment))
 }
 
 test_SummarizedExperiment_construction_dimnames <- function()
@@ -81,25 +81,25 @@ test_SummarizedExperiment_construction_dimnames <- function()
         }
 
         se <- SummarizedExperiment(m)
-        checkTrue(inherits(S7::validate(se), SummarizedExperiment_class))
+        checkTrue(inherits(S7::validate(se), SummarizedExperiment))
         checkIdentical(rownames(m), rownames(se))
         checkIdentical(colnames(m), colnames(se))
         test_rowData_colData_assay(se)
 
         se <- SummarizedExperiment(m, rowData=rowData)
-        checkTrue(inherits(S7::validate(se), SummarizedExperiment_class))
+        checkTrue(inherits(S7::validate(se), SummarizedExperiment))
         checkIdentical(target_rownames(), rownames(se))
         checkIdentical(colnames(m), colnames(se))
         test_rowData_colData_assay(se)
 
         se <- SummarizedExperiment(m, colData=colData)
-        checkTrue(inherits(S7::validate(se), SummarizedExperiment_class))
+        checkTrue(inherits(S7::validate(se), SummarizedExperiment))
         checkIdentical(rownames(m), rownames(se))
         checkIdentical(target_colnames(), colnames(se))
         test_rowData_colData_assay(se)
 
         se <- SummarizedExperiment(m, rowData=rowData, colData=colData)
-        checkTrue(inherits(S7::validate(se), SummarizedExperiment_class))
+        checkTrue(inherits(S7::validate(se), SummarizedExperiment))
         checkIdentical(target_rownames(), rownames(se))
         checkIdentical(target_colnames(), colnames(se))
         test_rowData_colData_assay(se)
@@ -158,7 +158,7 @@ test_SummarizedExperiment_construction_dimnames <- function()
     ## wouldn't need to modify the dimnames of the supplied assay.
     rownames(m)[c(1L, 3L)] <- NA
     se <- SummarizedExperiment(m)
-    checkTrue(inherits(S7::validate(se), SummarizedExperiment_class))
+    checkTrue(inherits(S7::validate(se), SummarizedExperiment))
 }
 
 test_SummarizedExperiment_getters <- function()
@@ -373,7 +373,7 @@ test_SummarizedExperiment_assays_4d <- function()
                                       c("y1", "y2"),
                                       NULL))
     assays0 <- SimpleList(A=A, B=B)
-    checkTrue(inherits(S7::validate(SummarizedExperiment(assays0)), SummarizedExperiment_class))
+    checkTrue(inherits(S7::validate(SummarizedExperiment(assays0)), SummarizedExperiment))
 
     dimnames(B)[[2]] <- c("y1", "oops")
     assays0 <- SimpleList(A=A, B=B)
@@ -392,8 +392,8 @@ test_SummarizedExperiment_assays_4d <- function()
     assays0 <- SimpleList(A=A, B=B, C=C, D=D, E=E)
     se0 <- se1 <- SummarizedExperiment(assays0)
     dimnames(se0) <- NULL
-    checkTrue(inherits(S7::validate(se0), SummarizedExperiment_class))
-    checkTrue(inherits(S7::validate(se1), SummarizedExperiment_class))
+    checkTrue(inherits(S7::validate(se0), SummarizedExperiment))
+    checkTrue(inherits(S7::validate(se1), SummarizedExperiment))
 
     ## dimnames
     checkIdentical(NULL, dimnames(se0))
