@@ -53,7 +53,9 @@ S4_register(.Assays_OR_NULL)
 }
 
 RectangularVector <- setClass("RectangularVector",
-                              contains = c("RectangularData", "Vector"))
+                              contains = c("RectangularData",
+                                           "Vector",
+                                           "VIRTUAL"))
 
 SummarizedExperiment_constructor <- function(assays=SimpleList(),
                                              rowData=NULL, rowRanges=NULL,
