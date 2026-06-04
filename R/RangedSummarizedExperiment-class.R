@@ -31,6 +31,29 @@
 ### The 'elementMetadata' slot must contain a zero-column DataFrame at all time
 ### (this is checked by the validity method). The top-level mcols are stored on
 ### the rowRanges component.
+RangedSummarizedExperiment_constructor <- function(rowRanges=GenomicRanges::GRanges(),
+                                                   colData=S4Vectors::DataFrame(),
+                                                   assays=SimpleList(),
+                                                   metadata=list(),
+                                                   .s4=TRUE)
+{
+    if (FALSE)
+        new_object()
+    assays <- Assays(assays, as.null.if.no.assay=FALSE)
+    elementMetadata <- S4Vectors:::make_zero_col_DataFrame(length(rowRanges))
+    parent <- SummarizedExperiment(assays=assays,
+                                   rowData=elementMetadata,
+                                   colData=colData,
+                                   metadata=metadata,
+                                   checkDimnames=FALSE,
+                                   .s4=FALSE)
+    object <- new_object(parent, rowRanges=rowRanges)
+    if (.s4)
+        new_RangedSummarizedExperiment(object)
+    else
+        object
+}
+
 RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
     parent=SummarizedExperiment,
     properties=list(
@@ -39,18 +62,11 @@ RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
             default=quote(GenomicRanges::GRanges())
         )
     ),
-    constructor=function(rowRanges=GenomicRanges::GRanges(),
-                         colData=S4Vectors::DataFrame(),
-                         assays=SimpleList(),
-                         metadata=list()) {
-        if (FALSE)
-            new_object()
-        new_RangedSummarizedExperiment(assays, rowRanges, colData, metadata)
-    },
+    constructor=RangedSummarizedExperiment_constructor,
     validator=function(self) .valid.RangedSummarizedExperiment(self)
 )
 
-setShim(RangedSummarizedExperiment)
+RangedSummarizedExperiment_S4Slots <- setShim(RangedSummarizedExperiment)
 
 ### Combine the new "parallel slots" with those of the parent class. Make
 ### sure to put the new parallel slots **first**. See R/Vector-class.R file
@@ -66,18 +82,10 @@ method(parallel_slot_names, RangedSummarizedExperiment) <-
 ### Constructor
 ###
 
-new_RangedSummarizedExperiment <- function(assays, rowRanges, colData,
-                                            metadata)
+new_RangedSummarizedExperiment <- function(object)
 {
-    assays <- Assays(assays, as.null.if.no.assay=FALSE)
-    elementMetadata <- S4Vectors:::make_zero_col_DataFrame(length(rowRanges))
     methods::new("RangedSummarizedExperiment",
-                 rowRanges=rowRanges,
-                 colData=colData,
-                 assays=assays,
-                 elementMetadata=elementMetadata,
-                 NAMES=NULL,
-                 metadata=as.list(metadata))
+                 methods::new(RangedSummarizedExperiment_S4Slots, object))
 }
 
 
@@ -90,11 +98,11 @@ new_RangedSummarizedExperiment <- function(assays, rowRanges, colData,
 
 .from_RangedSummarizedExperiment_to_SummarizedExperiment <- function(from)
 {
-    new_SummarizedExperiment(from@assays,
-                             names(from@rowRanges),
-                             mcols(from@rowRanges, use.names=FALSE),
-                             from@colData,
-                             from@metadata)
+    SummarizedExperiment(assays=from@assays,
+                         rowData=mcols(from@rowRanges, use.names=FALSE),
+                         colData=from@colData,
+                         metadata=from@metadata,
+                         checkDimnames=FALSE)
 }
 
 method(convert, list(RangedSummarizedExperiment, SummarizedExperiment)) <- function(from, to) {
@@ -106,10 +114,10 @@ method(convert, list(RangedSummarizedExperiment, SummarizedExperiment)) <- funct
     partitioning <- PartitioningByEnd(integer(length(from)), names=names(from))
     rowRanges <- relist(GRanges(), partitioning)
     mcols(rowRanges) <- mcols(from, use.names=FALSE)
-    new_RangedSummarizedExperiment(from@assays,
-                                   rowRanges,
-                                   from@colData,
-                                   from@metadata)
+    RangedSummarizedExperiment(assays=from@assays,
+                               rowRanges=rowRanges,
+                               colData=from@colData,
+                               metadata=from@metadata)
 }
 
 method(convert, list(SummarizedExperiment, RangedSummarizedExperiment)) <- function(from, to) {

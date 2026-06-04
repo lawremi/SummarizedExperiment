@@ -10,5 +10,7 @@ RectangularData_class <- methods::getClass("RectangularData")
 
 ## Attempt to keep the exported S4 classes alive by proxy
 setShim <- function(class) {
-    setClass(class@name, contains = S4_register_contains(class))
+    slots_class <- S4_register_contains(class)
+    setClass(class@name, contains = slots_class)
+    slots_class
 }

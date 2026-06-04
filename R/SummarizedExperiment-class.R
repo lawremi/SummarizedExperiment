@@ -55,6 +55,59 @@ S4_register(.Assays_OR_NULL)
 RectangularVector <- setClass("RectangularVector",
                               contains = c("RectangularData", "Vector"))
 
+SummarizedExperiment_constructor <- function(assays=SimpleList(),
+                                             rowData=NULL, rowRanges=NULL,
+                                             colData=DataFrame(),
+                                             metadata=list(),
+                                             checkDimnames=TRUE,
+                                             .s4=TRUE)
+{
+    if (FALSE)
+        new_object()
+    args <- list(assays=assays,
+                 rowData=rowData,
+                 rowRanges=rowRanges,
+                 metadata=metadata,
+                 checkDimnames=checkDimnames)
+    if (!missing(colData))
+        args$colData <- colData
+    args <- do.call(.norm_SummarizedExperiment, args)
+
+    if (!is.null(args$rowRanges)) {
+        return(RangedSummarizedExperiment(rowRanges=args$rowRanges,
+                                          colData=args$colData,
+                                          assays=args$assays,
+                                          metadata=args$metadata,
+                                          .s4=.s4))
+    }
+
+    assays <- Assays(args$assays, as.null.if.no.assay=FALSE)
+    rowData <- args$rowData
+    if (is.null(rowData)) {
+        if (!is.null(args$names)) {
+            nrow <- length(args$names)
+        } else if (!is.null(assays)) {
+            nrow <- nrow(assays)
+        } else {
+            nrow <- 0L
+        }
+        rowData <- S4Vectors:::make_zero_col_DataFrame(nrow)
+    } else {
+        rownames(rowData) <- NULL
+    }
+
+    object <- new_object(S7_object(),
+                         NAMES=args$names,
+                         elementMetadata=rowData,
+                         colData=args$colData,
+                         assays=assays,
+                         metadata=as.list(args$metadata))
+    if (.s4)
+        new_SummarizedExperiment(object)
+    else
+        object
+}
+
 SummarizedExperiment <- new_class("SummarizedExperiment",
     parent=RectangularVector,
     properties=list(
@@ -69,26 +122,11 @@ SummarizedExperiment <- new_class("SummarizedExperiment",
             default=quote(S4Vectors::DataFrame())
         )
     ),
-    constructor=function(assays=SimpleList(),
-                         rowData=NULL, rowRanges=NULL,
-                         colData=DataFrame(),
-                         metadata=list(),
-                         checkDimnames=TRUE) {
-        if (FALSE)
-            new_object()
-        args <- list(assays=assays,
-                     rowData=rowData,
-                     rowRanges=rowRanges,
-                     metadata=metadata,
-                     checkDimnames=checkDimnames)
-        if (!missing(colData))
-            args$colData <- colData
-        do.call(.SummarizedExperiment, args)
-    },
+    constructor=SummarizedExperiment_constructor,
     validator=function(self) .valid.SummarizedExperiment(self)
 )
 
-setShim(SummarizedExperiment)
+SummarizedExperiment_S4Slots <- setShim(SummarizedExperiment)
 
 ### Combine the new "parallel slots" with those of the parent class. Make
 ### sure to put the new parallel slots **first**. See R/Vector-class.R file
@@ -457,28 +495,10 @@ method(`dimnames<-`, SummarizedExperiment) <-
 ### Low-level constructor (not exported)
 ###
 
-new_SummarizedExperiment <- function(assays, names, rowData, colData,
-                                     metadata)
+new_SummarizedExperiment <- function(object)
 {
-    assays <- Assays(assays, as.null.if.no.assay=FALSE)
-    if (is.null(rowData)) {
-        if (!is.null(names)) {
-            nrow <- length(names)
-        } else if (!is.null(assays)) {
-            nrow <- nrow(assays)
-        } else {
-            nrow <- 0L
-        }
-        rowData <- S4Vectors:::make_zero_col_DataFrame(nrow)
-    } else {
-        rownames(rowData) <- NULL
-    }
     methods::new("SummarizedExperiment",
-                 NAMES=names,
-                 elementMetadata=rowData,
-                 colData=colData,
-                 assays=assays,
-                 metadata=as.list(metadata))
+                 methods::new(SummarizedExperiment_S4Slots, object))
 }
 
 
@@ -512,11 +532,11 @@ new_SummarizedExperiment <- function(assays, names, rowData, colData,
     colnames
 }
 
-.SummarizedExperiment <- function(assays=SimpleList(),
-                                  rowData=NULL, rowRanges=NULL,
-                                  colData=DataFrame(),
-                                  metadata=list(),
-                                  checkDimnames=TRUE)
+.norm_SummarizedExperiment <- function(assays=SimpleList(),
+                                       rowData=NULL, rowRanges=NULL,
+                                       colData=DataFrame(),
+                                       metadata=list(),
+                                       checkDimnames=TRUE)
 {
     if (!isTRUEorFALSE(checkDimnames))
         stop(wmsg("'checkDimnames' must be TRUE or FALSE"))
@@ -561,17 +581,18 @@ new_SummarizedExperiment <- function(assays, names, rowData, colData,
         }
     }
 
-    if (is.null(rowRanges)) {
-        ans <- new_SummarizedExperiment(assays, ans_rownames, rowData, colData,
-                                        metadata)
-    } else {
-        ans <- new_RangedSummarizedExperiment(assays, rowRanges, colData,
-                                              metadata)
+    if (!checkDimnames) {
+        return(list(assays=assays,
+                    names=ans_rownames,
+                    rowData=rowData,
+                    rowRanges=rowRanges,
+                    colData=colData,
+                    metadata=metadata))
     }
-    if (!checkDimnames)
-        return(ans)
     ans_dimnames <- list(ans_rownames, rownames(colData))
-    ok <- .assays_have_expected_dimnames(ans@assays, ans_dimnames, strict=FALSE)
+    assays_for_check <- Assays(assays, as.null.if.no.assay=FALSE)
+    ok <- .assays_have_expected_dimnames(assays_for_check, ans_dimnames,
+                                         strict=FALSE)
     if (!ok) {
         if (is.null(ans_dimnames[[1L]])) {
             what <- "colnames"
@@ -581,10 +602,20 @@ new_SummarizedExperiment <- function(assays, names, rowData, colData,
             what <- "rownames and colnames"
         }
         stop(wmsg("the ", what, " of the supplied assay(s) must be NULL ",
-                  "or identical to those of the ", class(ans), " object ",
+                  "or identical to those of the SummarizedExperiment object ",
                   "(or derivative) to construct"))
     }
-    ans
+    list(assays=assays,
+         names=ans_rownames,
+         rowData=rowData,
+         rowRanges=rowRanges,
+         colData=colData,
+         metadata=metadata)
+}
+
+.SummarizedExperiment <- function(...)
+{
+    SummarizedExperiment(...)
 }
 
 
