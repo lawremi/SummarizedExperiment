@@ -4,7 +4,7 @@
 ###
 
 
-.Assays_OR_NULL <- new_union(.Assays, NULL)
+.Assays_OR_NULL <- new_union(Assays, NULL)
 S4_register(.Assays_OR_NULL)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

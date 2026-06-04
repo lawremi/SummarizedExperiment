@@ -75,13 +75,43 @@
     NULL
 }
 
-.Assays <- new_class("Assays",
+Assays_constructor <- function(assays=SimpleList(), as.null.if.no.assay=FALSE)
+{
+    if (FALSE)
+        new_object()
+    if (!isTRUEorFALSE(as.null.if.no.assay))
+        stop(wmsg("'as.null.if.no.assay' must be TRUE or FALSE"))
+    ## Starting with SummarizedExperiment 1.15.4, we wrap the user-supplied
+    ## assays in a SimpleAssays object instead of a ShallowSimpleListAssays
+    ## object. Note that there are probably hundreds (if not thousands) of
+    ## serialized SummarizedExperiment objects around that use
+    ## ShallowSimpleListAssays. These objects should keep working as before!
+    if (!inherits(assays, SimpleAssays)) {
+        if (inherits(assays, Assays)) {
+            ## Will turn any Assays derivative (e.g. ShallowSimpleListAssays)
+            ## into a SimpleAssays object.
+            assays <- convert(convert(assays, SimpleList_class), SimpleAssays)
+        } else {
+            assays <- normarg_assays(assays, as.null.if.no.assay)
+            if (is.null(assays))
+                return(NULL)
+            assays <- convert(assays, SimpleAssays)
+            validate(assays)
+        }
+    }
+    if (length(assays) == 0L && as.null.if.no.assay)
+        return(NULL)
+    assays
+}
+
+Assays <- new_class("Assays",
     parent=RectangularData_class,
     abstract=TRUE,
+    constructor=Assays_constructor,
     validator=function(self) .valid.Assays(self)
 )
 
-setShim(.Assays)
+setShim(Assays)
 
 ### Constructor
 
@@ -133,32 +163,7 @@ normarg_assays <- function(assays, as.null.if.no.assay=FALSE)
 
 ### Always return a SimpleAssays object by default. Will return a NULL only
 ### if 'as.null.if.no.assay' is set to TRUE and no assays are supplied.
-Assays <- function(assays=SimpleList(), as.null.if.no.assay=FALSE)
-{
-    if (!isTRUEorFALSE(as.null.if.no.assay))
-        stop(wmsg("'as.null.if.no.assay' must be TRUE or FALSE"))
-    ## Starting with SummarizedExperiment 1.15.4, we wrap the user-supplied
-    ## assays in a SimpleAssays object instead of a ShallowSimpleListAssays
-    ## object. Note that there are probably hundreds (if not thousands) of
-    ## serialized SummarizedExperiment objects around that use
-    ## ShallowSimpleListAssays. These objects should keep working as before!
-    if (!inherits(assays, SimpleAssays)) {
-        if (inherits(assays, .Assays)) {
-            ## Will turn any Assays derivative (e.g. ShallowSimpleListAssays)
-            ## into a SimpleAssays object.
-            assays <- convert(convert(assays, SimpleList_class), SimpleAssays)
-        } else {
-            assays <- normarg_assays(assays, as.null.if.no.assay)
-            if (is.null(assays))
-                return(NULL)
-            assays <- convert(assays, SimpleAssays)
-            validate(assays)
-        }
-    }
-    if (length(assays) == 0L && as.null.if.no.assay)
-        return(NULL)
-    assays
-}
+# (Assays constructor is now defined as the S7 class constructor above)
 
 ### updateObject
 
@@ -174,15 +179,15 @@ Assays <- function(assays=SimpleList(), as.null.if.no.assay=FALSE)
     convert(assays, SimpleAssays)
 }
 
-method(updateObject, .Assays) <- .updateObject_Assays
+method(updateObject, Assays) <- .updateObject_Assays
 
 ### Accessors
 
-method(length, .Assays) <- function(x) length(convert(x, SimpleList_class))
+method(length, Assays) <- function(x) length(convert(x, SimpleList_class))
 
-method(names, .Assays) <- function(x) names(convert(x, SimpleList_class))
+method(names, Assays) <- function(x) names(convert(x, SimpleList_class))
 
-method(`names<-`, .Assays) <-
+method(`names<-`, Assays) <-
     function(x, value)
     {
         x <- convert(x, SimpleList_class)
@@ -190,14 +195,14 @@ method(`names<-`, .Assays) <-
         convert(x, S7_class(x))
     }
 
-method(getListElement, .Assays) <-
+method(getListElement, Assays) <-
     function(x, i, exact=TRUE)
     {
         x <- convert(x, SimpleList_class)
         getListElement(x, i, exact=exact)
     }
 
-method(setListElement, .Assays) <-
+method(setListElement, Assays) <-
     function(x, i, value)
     {
         x <- convert(x, SimpleList_class)
@@ -206,7 +211,7 @@ method(setListElement, .Assays) <-
         ans
     }
 
-method(dim, .Assays) <- function(x)
+method(dim, Assays) <- function(x)
 {
     if (length(x) == 0L)
         return(c(0L, 0L))
@@ -233,7 +238,7 @@ method(dim, .Assays) <- function(x)
     convert(endoapply(assays, extract_assay_subset), S7_class(x))
 }
 
-method(`[`, .Assays) <-
+method(`[`, Assays) <-
     function(x, i, j, ..., drop=TRUE) .extract_Assays_subset(x, i, j)
 
 ### Subassign each assay in Assays object 'x' along its first 2 dimensions.
@@ -255,7 +260,7 @@ method(`[`, .Assays) <-
     convert(mendoapply(replace_assay_subset, assays, values), S7_class(x))
 }
 
-method(`[<-`, .Assays) <-
+method(`[<-`, Assays) <-
     function(x, i, j, ..., value) .replace_Assays_subset(x, i, j, value)
 
 ### rbind/cbind
@@ -304,14 +309,14 @@ method(`[<-`, .Assays) <-
     convert(SimpleList(res), S7_class(getListElement(objects, 1L)))
 }
 
-method(rbind, .Assays) <-
+method(rbind, Assays) <-
     function(..., deparse.level=1)
     {
         objects <- unname(list(...))
         .bind_Assays_objects(objects, along.cols=FALSE)
     }
 
-method(cbind, .Assays) <-
+method(cbind, Assays) <-
     function(..., deparse.level=1)
     {
         objects <- unname(list(...))
@@ -345,7 +350,7 @@ SimpleAssays_constructor <- function(data=SimpleList(), .s4=TRUE)
 }
 
 SimpleAssays <- new_class("SimpleAssays",
-    parent=.Assays,
+    parent=Assays,
     properties=list(
         data=SimpleList_class
     ),
@@ -418,7 +423,7 @@ AssaysInEnv_constructor <- function(envir, .s4=TRUE)
 }
 
 AssaysInEnv <- new_class("AssaysInEnv",
-    parent=.Assays,
+    parent=Assays,
     properties=list(
         envir=class_environment
     ),
