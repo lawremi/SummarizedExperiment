@@ -59,7 +59,7 @@
     assays <- try(convert(x, SimpleList_class), silent=TRUE)
     if (inherits(assays, "try-error"))
         return("'as(x, \"SimpleList\")' must work")
-    if (!is(assays, "SimpleList"))
+    if (!inherits(assays, "SimpleList"))
         return("'as(x, \"SimpleList\")' must return a SimpleList object")
     if (length(assays) == 0L)
         return(NULL)
@@ -134,7 +134,7 @@ normarg_assays <- function(assays, as.null.if.no.assay=FALSE)
                    "matrix-like elements, or a matrix-like object, ",
                    "or a NULL (see '?SummarizedExperiment')")
 
-    if (is(assays, "Assays"))
+    if (inherits(assays, Assays))
         stop(wmsg(error_msg))
 
     assays_dim <- dim(assays)
@@ -145,12 +145,12 @@ normarg_assays <- function(assays, as.null.if.no.assay=FALSE)
         #return(SimpleList(assays))  # broken on a data frame
         return(new2("SimpleList", listData=list(assays), check=FALSE))
 
-    if (!is(assays, "SimpleList")) {
+    if (!inherits(assays, "SimpleList")) {
         if (is.list(assays)) {
             #assays <- do.call(SimpleList, assays) # broken on a list of
                                                    # data frames
             assays <- new2("SimpleList", listData=assays, check=FALSE)
-        } else if (is(assays, "List")) {
+        } else if (inherits(assays, "List")) {
             assays <- as(assays, "SimpleList")  # could fail
         } else {
             stop(wmsg(error_msg))

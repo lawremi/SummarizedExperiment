@@ -24,7 +24,7 @@ makeSummarizedExperimentFromDataFrame <-
         idx <- match(rangedNames, names(df))
         counts <- as.matrix(df[, -idx, drop = FALSE])
 
-        if (!is(as.vector(counts), "numeric"))
+        if (!is.numeric(as.vector(counts)))
             stop("failed to coerce non-range columns to 'numeric'")
 
         SummarizedExperiment(

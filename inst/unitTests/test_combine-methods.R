@@ -128,7 +128,7 @@ test_combineRows_ranges_named <- function() {
     rowRanges(se3) <- NULL
     rownames(se3) <- rownames(se2)
     suppressWarnings(out <- combineRows(se, se3, use.names=FALSE))
-    checkTrue(is(rowRanges(out), "GRangesList"))
+    checkTrue(inherits(rowRanges(out), "GRangesList"))
     checkIdentical(unname(lengths(rowRanges(out))), rep(c(1L, 0L), c(nrow(se), nrow(se3))))
 
     se4 <- se2
@@ -170,7 +170,7 @@ test_combineRows_ranges_unnamed <- function() {
     se3 <- se2
     rowRanges(se3) <- NULL
     suppressWarnings(out <- combineRows(se, se3, use.names=FALSE))
-    checkTrue(is(rowRanges(out), "GRangesList"))
+    checkTrue(inherits(rowRanges(out), "GRangesList"))
     checkIdentical(unname(lengths(rowRanges(out))), rep(c(1L, 0L), c(nrow(se), nrow(se3))))
 
     se4 <- se2
@@ -323,7 +323,7 @@ test_combineCols_ranges_named <- function() {
     rownames(se3) <- rownames(se2)
 
     out <- combineCols(se, se3)
-    checkTrue(is(rowRanges(out), "GRangesList"))
+    checkTrue(inherits(rowRanges(out), "GRangesList"))
     checkIdentical(rownames(out), paste0("GENE_", 1:120)) 
     checkIdentical(unname(lengths(rowRanges(out))), rep(1:0, c(100, 20))) 
 
@@ -348,7 +348,7 @@ test_combineCols_ranges_named <- function() {
     se5 <- se2
     strand(rowRanges(se5)[1]) <- "+"
     suppressWarnings(out <- combineCols(se, se5)) # this should emit a warning.
-    checkTrue(is(rowRanges(out), "GRangesList"))
+    checkTrue(inherits(rowRanges(out), "GRangesList"))
     checkIdentical(unname(lengths(rowRanges(out))), rep(1:0, c(100, 20))) 
 }
 

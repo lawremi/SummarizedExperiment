@@ -546,7 +546,7 @@ new_SummarizedExperiment <- function(object)
     assays <- normarg_assays(assays, as.null.if.no.assay=TRUE)
 
     if (!missing(colData)) {
-        if (!is(colData, "DataFrame"))
+        if (!inherits(colData, "DataFrame"))
             colData <- as(colData, "DataFrame")
         if (is.null(rownames(colData)))
             rownames(colData) <- .get_colnames_from_first_assay(assays)
@@ -560,7 +560,7 @@ new_SummarizedExperiment <- function(object)
         if (is.null(rowRanges)) {
             ans_rownames <- .get_rownames_from_first_assay(assays)
         } else {
-            if (!is(rowRanges, "GenomicRanges_OR_GRangesList"))
+            if (!inherits(rowRanges, "GenomicRanges_OR_GRangesList"))
                 stop("'rowRanges' must be a GRanges or GRangesList object")
             if (is.null(names(rowRanges)))
                 names(rowRanges) <- .get_rownames_from_first_assay(assays)
@@ -569,13 +569,13 @@ new_SummarizedExperiment <- function(object)
     } else {
         if (!is.null(rowRanges))
             stop("only one of 'rowData' and 'rowRanges' can be specified")
-        if (is(rowData, "GenomicRanges_OR_GRangesList")) {
+        if (inherits(rowData, "GenomicRanges_OR_GRangesList")) {
             rowRanges <- rowData
             if (is.null(names(rowRanges)))
                 names(rowRanges) <- .get_rownames_from_first_assay(assays)
             ans_rownames <- names(rowRanges)
         } else {
-            if (!is(rowData, "DataFrame"))
+            if (!inherits(rowData, "DataFrame"))
                 rowData <- as(rowData, "DataFrame")
             ans_rownames <- rownames(rowData)
             if (is.null(ans_rownames))
@@ -1005,7 +1005,7 @@ method(cbind, SummarizedExperiment) <-
 {
     x1 <- x[[1]]
     if (GenomicRanges) {
-        if (is(x1, "GRangesList")) {
+        if (inherits(x1, "GRangesList")) {
             x <- lapply(x, unlist)
             x1 <- x[[1]]
         }

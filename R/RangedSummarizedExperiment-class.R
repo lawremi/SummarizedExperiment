@@ -352,7 +352,7 @@ method(is.unsorted, RangedSummarizedExperiment) <-
     function(x, na.rm = FALSE, strictly = FALSE, ignore.strand = FALSE)
 {
     x <- rowRanges(x)
-    if (!is(x, "GenomicRanges"))
+    if (!inherits(x, "GenomicRanges"))
         stop("is.unsorted() is not yet supported when 'rowRanges(x)' is a ",
              class(x), " object")
     callGeneric()
@@ -380,7 +380,7 @@ method(sort, RangedSummarizedExperiment) <-
     function(x, decreasing = FALSE, ignore.strand = FALSE)
 {
     x_rowRanges <- rowRanges(x)
-    if (!is(x_rowRanges, "GenomicRanges"))
+    if (!inherits(x_rowRanges, "GenomicRanges"))
         stop("sort() is not yet supported when 'rowRanges(x)' is a ",
              class(x_rowRanges), " object")
     oo <- GenomicRanges:::order_GenomicRanges(x_rowRanges,
@@ -402,11 +402,11 @@ method(seqinfo, RangedSummarizedExperiment) <-
              pruning.mode=c("error", "coarse", "fine", "tidy"),
              value)
 {
-    if (!is(value, "Seqinfo"))
+    if (!inherits(value, "Seqinfo"))
         stop("the supplied 'seqinfo' must be a Seqinfo object")
     pruning.mode <- match.arg(pruning.mode)
     if (pruning.mode == "fine") {
-        if (is(x@rowRanges, "GenomicRanges"))
+        if (inherits(x@rowRanges, "GenomicRanges"))
             stop(wmsg("\"fine\" pruning mode is not supported on ",
                       class(x), " objects with a rowRanges component that ",
                       "is a GRanges object or a GenomicRanges derivative"))
@@ -421,7 +421,7 @@ method(seqinfo, RangedSummarizedExperiment) <-
             ## object where all the list elements are logical vectors (e.g.
             ## a LogicalList or RleList object). If the latter, we transform
             ## it into a logical vector.
-            if (is(idx, "List")) {
+            if (inherits(idx, "List")) {
                 if (pruning.mode == "coarse") {
                     idx <- all(idx)  # "coarse" pruning
                 } else {

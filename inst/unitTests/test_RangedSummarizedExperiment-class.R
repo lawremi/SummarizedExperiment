@@ -385,7 +385,7 @@ test_RangedSummarizedExperiment_NULL_rowRanges <- function()
     rse <- rseList[[1L]]
     rowRanges(rse) <- NULL
     checkTrue(identical(rowRanges(rse), NULL))
-    checkTrue(is(rse, "SummarizedExperiment") &&
-        !is(rse, "RangedSummarizedExperiment"))
+    checkTrue(inherits(rse, SummarizedExperiment) &&
+        !inherits(rse, RangedSummarizedExperiment))
     checkTrue(identical(rowRanges(se), NULL))
 }

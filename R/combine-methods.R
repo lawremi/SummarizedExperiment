@@ -197,7 +197,7 @@ extract_granges_from_se <- function(all.se) {
     # Coercing everyone to a GRL if anyone is a GRL. Note that we don't fill in
     # NULLs with GRLs yet, to give a chance for the caller to decide how to
     # handle them (e.g., fill in combineRows or merge in combineCols).
-    is.grl <- vapply(final.rr[has.ranges], function(x) is(x, "GRangesList"), TRUE)
+    is.grl <- vapply(final.rr[has.ranges], function(x) inherits(x, "GRangesList"), TRUE)
     if (any(is.grl)) {
         for (s in which(has.ranges)) {
             final.rr[[s]] <- as(final.rr[[s]], "GRangesList")

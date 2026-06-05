@@ -5,9 +5,9 @@
 
 .from_rowRanges_to_FeatureData <- function(from)
 {
-    if (is(from, "GRanges")) {
+    if (inherits(from, "GRanges")) {
         fd <- .from_GRanges_to_FeatureData(from)
-    } else if (is(from, "GRangesList")) {
+    } else if (inherits(from, "GRangesList")) {
         fd <- .from_GRangesList_to_FeatureData(from)
     } else {
         stop("class ", sQuote(class(from)),
