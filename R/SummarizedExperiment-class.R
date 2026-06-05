@@ -212,6 +212,7 @@ method(`mcols<-`, list(SummarizedExperiment, class_any)) <-
 rowData <- new_generic("rowData", "x",
     function(x, use.names=TRUE, ...) S7_dispatch()
 )
+setS4Generic(rowData)
 
 ### Fix old DataFrame instances on-the-fly (mcols() does it).
 method(rowData, SummarizedExperiment) <-
@@ -219,11 +220,13 @@ method(rowData, SummarizedExperiment) <-
 
 `rowData<-` <- new_generic("rowData<-", "x",
     function(x, ..., value) S7_dispatch())
+setS4Generic(`rowData<-`)
 
 method(`rowData<-`, SummarizedExperiment) <-
     function(x, ..., value) `mcols<-`(x, ..., value=value)
 
 colData <- new_generic("colData", "x", function(x, ...) S7_dispatch())
+setS4Generic(colData)
 
 ### Fix old DataFrame instances on-the-fly.
 method(colData, SummarizedExperiment) <-
@@ -231,6 +234,7 @@ method(colData, SummarizedExperiment) <-
 
 `colData<-` <- new_generic("colData<-", "x",
     function(x, ..., value) S7_dispatch())
+setS4Generic(`colData<-`)
 
 method(`colData<-`, SummarizedExperiment) <- function(x, ..., value) {
     if (is.null(value)) {
@@ -246,6 +250,7 @@ method(`colData<-`, SummarizedExperiment) <- function(x, ..., value) {
 assays <- new_generic("assays", "x",
     function(x, withDimnames=TRUE, ...) S7_dispatch()
 )
+setS4Generic(assays)
 
 method(assays, SummarizedExperiment) <- 
     function(x, withDimnames=TRUE, ...) {
@@ -271,6 +276,7 @@ method(assays, SummarizedExperiment) <-
 `assays<-` <- new_generic("assays<-", "x",
     function(x, withDimnames=TRUE, ..., value) S7_dispatch()
 )
+setS4Generic(`assays<-`)
 
 ### 'expected_dimnames' must be a NULL or a list of length 2 where each
 ### list element is a character vector or a NULL.
@@ -378,6 +384,7 @@ method(`assays<-`, SummarizedExperiment) <-
 assay <- new_generic("assay", c("x", "i"),
     function(x, i, withDimnames=TRUE, ...) S7_dispatch()
 )
+setS4Generic(assay)
 
 ## convenience for common use case
 method(assay, list(SummarizedExperiment, class_missing)) <- 
@@ -418,6 +425,7 @@ method(assay, list(SummarizedExperiment, class_character)) <-
 
 `assay<-` <- new_generic("assay<-", c("x", "i"),
     function(x, i, withDimnames=TRUE, ..., value) S7_dispatch())
+setS4Generic(`assay<-`)
 
 method(`assay<-`, list(SummarizedExperiment, class_missing)) <- 
     function(x, i, withDimnames=TRUE, ..., value)
@@ -444,6 +452,7 @@ method(`assay<-`, list(SummarizedExperiment, class_character)) <-
 }
 
 assayNames <- new_generic("assayNames", "x", function(x, ...) S7_dispatch())
+setS4Generic(assayNames)
 
 method(assayNames, SummarizedExperiment) <-
     function(x, ...)
@@ -453,6 +462,7 @@ method(assayNames, SummarizedExperiment) <-
 
 `assayNames<-` <- new_generic("assayNames<-", "x",
     function(x, ..., value) S7_dispatch())
+setS4Generic(`assayNames<-`)
 
 method(`assayNames<-`, SummarizedExperiment) <-
     function(x, ..., value)

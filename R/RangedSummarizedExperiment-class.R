@@ -143,6 +143,7 @@ method(rowRanges, RangedSummarizedExperiment) <-
 
 `rowRanges<-` <- new_generic("rowRanges<-", "x",
     function(x, ..., value) S7_dispatch())
+setS4Generic(`rowRanges<-`)
 
 .SummarizedExperiment.rowRanges.replace <-
     function(x, ..., value)

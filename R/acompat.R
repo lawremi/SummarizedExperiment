@@ -16,3 +16,24 @@ setShim <- function(class, parent = NULL) {
         setIs(class@name, parent)
     slots_class
 }
+
+setS4Generic <- function(generic, where = parent.frame()) {
+    s7_generic <- generic
+
+    args <- names(formals(generic))
+    call_args <- lapply(args, as.name)
+    names(call_args) <- args
+    names(call_args)[args == "..."] <- ""
+    body <- as.call(c(as.name(generic@name), call_args))
+    wrapper <- as.function(c(formals(generic), list(body)), where)
+
+    methods::setGeneric(
+        generic@name,
+        wrapper,
+        signature = generic@dispatch_args,
+        where = where
+    )
+    methods::setGenericImplicit(generic@name, where = where)
+    assign(generic@name, s7_generic, envir = where)
+    invisible(generic)
+}
