@@ -111,7 +111,7 @@ Assays <- new_class("Assays",
     validator=function(self) .valid.Assays(self)
 )
 
-setShim(Assays)
+setS4Class(Assays)
 
 ### Constructor
 
@@ -357,7 +357,7 @@ SimpleAssays <- new_class("SimpleAssays",
     constructor=SimpleAssays_constructor
 )
 
-SimpleAssays_S4Slots <- setShim(SimpleAssays, parent = "Assays")
+SimpleAssays_S4Slots <- setS4Class(SimpleAssays, parent = "Assays")
 
 new_SimpleAssays <- function(object)
 {
@@ -430,7 +430,7 @@ AssaysInEnv <- new_class("AssaysInEnv",
     constructor=AssaysInEnv_constructor
 )
 
-AssaysInEnv_S4Slots <- setShim(AssaysInEnv, parent = "Assays")
+AssaysInEnv_S4Slots <- setS4Class(AssaysInEnv, parent = "Assays")
 
 new_AssaysInEnv <- function(object)
 {

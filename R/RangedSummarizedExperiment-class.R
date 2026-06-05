@@ -66,7 +66,7 @@ RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
     validator=function(self) .valid.RangedSummarizedExperiment(self)
 )
 
-RangedSummarizedExperiment_S4Slots <- setShim(
+RangedSummarizedExperiment_S4Slots <- setS4Class(
     RangedSummarizedExperiment,
     parent = "SummarizedExperiment"
 )
