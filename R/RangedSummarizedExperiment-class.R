@@ -181,7 +181,7 @@ method(`names<-`, RangedSummarizedExperiment) <-
     set_props(x, rowRanges=rowRanges, .check=FALSE)
 }
 
-method(`dimnames<-`, RangedSummarizedExperiment) <-
+method(`dimnames<-`, list(RangedSummarizedExperiment, class_list)) <-
     function(x, value)
 {
     stopifnot(is.list(value))
