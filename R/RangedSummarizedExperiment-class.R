@@ -39,7 +39,6 @@ RangedSummarizedExperiment_constructor <- function(rowRanges=GenomicRanges::GRan
 {
     if (FALSE)
         new_object()
-    assays <- Assays(assays, as.null.if.no.assay=FALSE)
     elementMetadata <- S4Vectors:::make_zero_col_DataFrame(length(rowRanges))
     parent <- SummarizedExperiment(assays=assays,
                                    rowData=elementMetadata,
@@ -98,7 +97,7 @@ new_RangedSummarizedExperiment <- function(object)
 
 .from_RangedSummarizedExperiment_to_SummarizedExperiment <- function(from)
 {
-    SummarizedExperiment(assays=from@assays,
+    SummarizedExperiment(assays=convert(from@assays, SimpleList_class),
                          rowData=mcols(from@rowRanges, use.names=FALSE),
                          colData=from@colData,
                          metadata=from@metadata,
@@ -114,7 +113,7 @@ method(convert, list(RangedSummarizedExperiment, SummarizedExperiment)) <- funct
     partitioning <- PartitioningByEnd(integer(length(from)), names=names(from))
     rowRanges <- relist(GRanges(), partitioning)
     mcols(rowRanges) <- mcols(from, use.names=FALSE)
-    RangedSummarizedExperiment(assays=from@assays,
+    RangedSummarizedExperiment(assays=convert(from@assays, SimpleList_class),
                                rowRanges=rowRanges,
                                colData=from@colData,
                                metadata=from@metadata)
