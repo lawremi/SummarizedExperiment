@@ -24,7 +24,7 @@ rseList <-
 test_interfaces <- function()
 {
     fun <- "findOverlaps"
-    rse_class <- class(RangedSummarizedExperiment())[[1]]
+    rse_class <- class(RangedSummarizedExperiment(.s4=FALSE))[1L]
     signatures <- list(
         c(rse_class, "Vector"),
         c("Vector", rse_class),
@@ -90,4 +90,3 @@ test_findOverlaps_methods <- function()
         }
     }
 }
-

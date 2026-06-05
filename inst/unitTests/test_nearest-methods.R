@@ -31,7 +31,7 @@ rseList <-
 
 test_interfaces <- function()
 {
-    rse_class <- class(RangedSummarizedExperiment())[[1]]
+    rse_class <- class(RangedSummarizedExperiment(.s4=FALSE))[1L]
     method_signatures <- list(
         c(rse_class, "ANY"),
         c("ANY", rse_class),
@@ -46,6 +46,7 @@ test_interfaces <- function()
         }
     }
 }
+
 
 test_nearest_methods <- function()
 {
@@ -68,4 +69,3 @@ test_nearest_methods <- function()
         }
     }
 }
-
