@@ -46,6 +46,7 @@ RangedSummarizedExperiment_constructor <- function(rowRanges=GenomicRanges::GRan
                                    metadata=metadata,
                                    checkDimnames=FALSE,
                                    .s4=FALSE)
+    parent <- set_props(parent, NAMES=NULL, .check=FALSE)
     object <- new_object(parent, rowRanges=rowRanges)
     if (.s4)
         new_RangedSummarizedExperiment(object)
