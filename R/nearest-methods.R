@@ -7,38 +7,44 @@
 ### precede & follow
 
 method(precede, list(RangedSummarizedExperiment, class_any)) <-
-    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+    function(x, subject, select=c("first", "all"), ignore.strand=FALSE)
 {
+    select <- match.arg(select)
     precede(rowRanges(x), subject, select=select, ignore.strand=ignore.strand)
 }
 
 method(precede, list(class_any, RangedSummarizedExperiment)) <-
-    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+    function(x, subject, select=c("first", "all"), ignore.strand=FALSE)
 {
+    select <- match.arg(select)
     precede(x, rowRanges(subject), select=select, ignore.strand=ignore.strand)
 }
 
 method(precede, list(RangedSummarizedExperiment, RangedSummarizedExperiment)) <-
-    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+    function(x, subject, select=c("first", "all"), ignore.strand=FALSE)
 {
+    select <- match.arg(select)
     precede(rowRanges(x), rowRanges(subject), select=select, ignore.strand=ignore.strand)
 }
 
 method(follow, list(RangedSummarizedExperiment, class_any)) <-
-    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+    function(x, subject, select=c("last", "all"), ignore.strand=FALSE)
 {
+    select <- match.arg(select)
     follow(rowRanges(x), subject, select=select, ignore.strand=ignore.strand)
 }
 
 method(follow, list(class_any, RangedSummarizedExperiment)) <-
-    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+    function(x, subject, select=c("last", "all"), ignore.strand=FALSE)
 {
+    select <- match.arg(select)
     follow(x, rowRanges(subject), select=select, ignore.strand=ignore.strand)
 }
 
 method(follow, list(RangedSummarizedExperiment, RangedSummarizedExperiment)) <-
-    function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
+    function(x, subject, select=c("last", "all"), ignore.strand=FALSE)
 {
+    select <- match.arg(select)
     follow(rowRanges(x), rowRanges(subject), select=select, ignore.strand=ignore.strand)
 }
 
@@ -48,18 +54,21 @@ method(follow, list(RangedSummarizedExperiment, RangedSummarizedExperiment)) <-
 method(nearest, list(RangedSummarizedExperiment, class_any)) <-
     function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
 {
+    select <- match.arg(select)
     nearest(rowRanges(x), subject, select=select, ignore.strand=ignore.strand)
 }
 
 method(nearest, list(class_any, RangedSummarizedExperiment)) <-
     function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
 {
+    select <- match.arg(select)
     nearest(x, rowRanges(subject), select=select, ignore.strand=ignore.strand)
 }
 
 method(nearest, list(RangedSummarizedExperiment, RangedSummarizedExperiment)) <-
     function(x, subject, select=c("arbitrary", "all"), ignore.strand=FALSE)
 {
+    select <- match.arg(select)
     nearest(rowRanges(x), rowRanges(subject), select=select, ignore.strand=ignore.strand)
 }
 
