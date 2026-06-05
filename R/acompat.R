@@ -9,8 +9,10 @@ GenomicRanges_OR_GRangesList_class <- methods::getClass("GenomicRanges_OR_GRange
 RectangularData_class <- methods::getClass("RectangularData")
 
 ## Attempt to keep the exported S4 classes alive by proxy
-setShim <- function(class) {
+setShim <- function(class, parent = NULL) {
     slots_class <- S4_register_contains(class)
     setClass(class@name, contains = slots_class)
+    if (!is.null(parent))
+        setIs(class@name, parent)
     slots_class
 }

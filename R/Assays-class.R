@@ -357,7 +357,7 @@ SimpleAssays <- new_class("SimpleAssays",
     constructor=SimpleAssays_constructor
 )
 
-SimpleAssays_S4Slots <- setShim(SimpleAssays)
+SimpleAssays_S4Slots <- setShim(SimpleAssays, parent = "Assays")
 
 new_SimpleAssays <- function(object)
 {
@@ -430,7 +430,7 @@ AssaysInEnv <- new_class("AssaysInEnv",
     constructor=AssaysInEnv_constructor
 )
 
-AssaysInEnv_S4Slots <- setShim(AssaysInEnv)
+AssaysInEnv_S4Slots <- setShim(AssaysInEnv, parent = "Assays")
 
 new_AssaysInEnv <- function(object)
 {
