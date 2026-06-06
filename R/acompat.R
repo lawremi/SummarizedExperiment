@@ -33,7 +33,7 @@ setS4Generic <- function(generic, where = parent.frame()) {
         signature = generic@dispatch_args,
         where = where
     )
-    methods::setGenericImplicit(generic@name, where = where)
+    methods::setGenericImplicit(generic@name, where = where, restore = FALSE)
     assign(generic@name, s7_generic, envir = where)
     invisible(generic)
 }
