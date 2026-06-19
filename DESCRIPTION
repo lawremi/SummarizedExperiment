@@ -15,6 +15,7 @@ Authors@R: c(
 	person("Martin", "Morgan", role="aut"),
 	person("Valerie", "Obenchain", role="aut"),
 	person("Jim", "Hester", role="aut"),
+	person("Michael", "Lawrence", role="aut"),
 	person("Hervé", "Pagès", role=c("aut", "cre"),
 		email="hpages.on.github@gmail.com"))
 Depends: R (>= 4.0.0), methods, MatrixGenerics (>= 1.1.3),
