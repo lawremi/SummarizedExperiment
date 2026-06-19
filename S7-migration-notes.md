@@ -36,12 +36,12 @@ Current constructor compromises:
   S4/S7 dispatch stack and could recurse until the C stack overflowed. The check
   instead compares assays against the dimnames known from constructor inputs.
 - `RectangularData` belongs in the S7 inheritance chain, through the
-  `RectangularVector` parent bridge, not on the exported S4 shim. The S7 old
-  class should remain a virtual inheritance/dispatch marker, while the
-  `::S4Slots` shim carries S7 properties as slots for S4 subclasses.
+  `RectangularVector` parent bridge, not on the exported S4 compatibility
+  class. S7 registration now creates the virtual S4 class that carries S7
+  properties as slots for S4 subclasses.
 - Slot prototypes for values like `colData`, `assays`, `NAMES`, and `rowRanges`
-  are an S7 registration responsibility on the `::S4Slots` shim. The S4 shim
-  classes should not need package-local prototype patches for
+  are an S7 registration responsibility. The concrete exported S4 classes should
+  not need package-local prototype patches for
   `methods::new("SummarizedExperiment")` or
   `methods::new("RangedSummarizedExperiment")`.
 - Open S7/methods issue: `validObject()` recursively validates S4 superclasses

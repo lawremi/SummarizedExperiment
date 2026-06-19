@@ -66,7 +66,7 @@ RangedSummarizedExperiment <- new_class("RangedSummarizedExperiment",
     validator=function(self) .valid.RangedSummarizedExperiment(self)
 )
 
-RangedSummarizedExperiment_S4Slots <- setS4Class(
+setS4Class(
     RangedSummarizedExperiment,
     parent = "SummarizedExperiment"
 )
@@ -87,8 +87,7 @@ method(parallel_slot_names, RangedSummarizedExperiment) <-
 
 new_RangedSummarizedExperiment <- function(object)
 {
-    methods::new("RangedSummarizedExperiment",
-                 methods::new(RangedSummarizedExperiment_S4Slots, object))
+    methods::new("RangedSummarizedExperiment", object)
 }
 
 

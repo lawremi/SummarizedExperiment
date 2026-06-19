@@ -357,12 +357,11 @@ SimpleAssays <- new_class("SimpleAssays",
     constructor=SimpleAssays_constructor
 )
 
-SimpleAssays_S4Slots <- setS4Class(SimpleAssays, parent = "Assays")
+setS4Class(SimpleAssays, parent = "Assays")
 
 new_SimpleAssays <- function(object)
 {
-    methods::new("SimpleAssays",
-                 methods::new(SimpleAssays_S4Slots, object))
+    methods::new("SimpleAssays", object)
 }
 
 ### We only need to implement the REQUIRED coercions.
@@ -430,12 +429,11 @@ AssaysInEnv <- new_class("AssaysInEnv",
     constructor=AssaysInEnv_constructor
 )
 
-AssaysInEnv_S4Slots <- setS4Class(AssaysInEnv, parent = "Assays")
+setS4Class(AssaysInEnv, parent = "Assays")
 
 new_AssaysInEnv <- function(object)
 {
-    methods::new("AssaysInEnv",
-                 methods::new(AssaysInEnv_S4Slots, object))
+    methods::new("AssaysInEnv", object)
 }
 
 .NAMES_SYMBOL <- ".names"  # must begin with a . so is ommitted by ls() 
