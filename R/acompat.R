@@ -10,7 +10,8 @@ RectangularData_class <- methods::getClass("RectangularData")
 
 ## Attempt to keep the exported S4 classes alive by proxy
 setS4Class <- function(class, parent = NULL) {
-    s4_class <- S4_register(class, contains=TRUE)
+    S4_register(class)
+    s4_class <- S4_contains(class)
     setClass(class@name, contains=c(s4_class, parent))
     s4_class
 }
